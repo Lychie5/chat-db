@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil | ChatBox</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body class="profile-body">
+  <div class="profile-container-wrap">
+    <div class="profile-container">
+    <h2>Bienvenue 👋</h2>
+    <p>Connecté en tant que : <span id="userPseudo"></span></p>
+
+    <button id="friendsBtn">👥 Mes amis</button>
+    <button id="convBtn">💬 Mes discussions</button>
+    <button id="logoutBtn">🚪 Déconnexion</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion | ChatBox</title>
+  <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body class="login-body">
+  <div class="login-wrap">
+    <div class="login-container">
+      <h2>💬 Bienvenue sur Meo !</h2>
+      <form id="loginForm">
+        <input id="pseudo" class="login-input" placeholder="Entrez votre pseudo..." required>
+        <button type="submit" class="login-submit">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amis | ChatBox</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/friends.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="friends-body">
+  <div class="friends-container">
+
+    <header class="friends-header">
+      <h2>👥 Mes Amis</h2>
+    </header>
+
+    <section id="friendsList" class="friends-section">
+      <p class="empty-msg">Aucun ami pour le moment</p>
+    </section>
+
+    <h3>📨 Demandes reçues</h3>
+    <section id="requests" class="friends-section">
+      <p class="empty-msg">Aucune demande reçue</p>
+    </section>
+
+    <h3>📤 Demandes envoyées</h3>
+    <section id="sentRequests" class="friends-section">
+      <p class="empty-msg">Aucune demande envoyée</p>
+    </section>
+
+    <h3>➕ Ajouter un(e) ami(e)</h3>
+    <section class="add-friend-box">
+    <p>Entrez le pseudo de la personne que vous souhaitez ajouter :</p>
+    <form id="addFriendForm" class="add-friend-form">
+        <input id="friendPseudo" type="text" placeholder="Ex : Momo..." required>
+        <button type="submit">Envoyer la demande</button>
+    </form>
+    <p id="friendMessage" class="friend-message"></p>
+    </section>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button onclick="window.location.href='profile.html'">👤 Profil</button>
+    <button class="active" onclick="window.location.href='friends.html'">👥 Amis</button>
+    <button onclick="window.location.href='index.html'">💬 Discussions</button>
+  </nav>
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/friends.js"></script>
+</body>
+</html>
