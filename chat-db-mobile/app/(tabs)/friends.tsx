@@ -69,6 +69,13 @@ export default function FriendsScreen() {
       
       const data = await api.get(`/api/friends/${currentUser}`);
       
+      // Vérifier que data est un tableau
+      if (!Array.isArray(data)) {
+        console.warn('Friends data is not an array:', data);
+        setFriends([]);
+        return;
+      }
+      
       // Transformer les données pour avoir le bon format
       const friendsList = data.map((friend: any) => ({
         id: friend.id,
@@ -87,7 +94,20 @@ export default function FriendsScreen() {
     try {
       if (!currentUser) return;
       const data = await api.get(`/api/friend-requests/${currentUser}`);
-      setReceivedRequests(data.filter((r: FriendRequest) => r.status === 'pending'));
+      
+      // Vérifier que data est un tableau
+      if (!Array.isArray(data)) {
+        console.warn('Received requests data is not an array:', data);
+        setReceivedRequests([]);
+        return;
+      }
+      
+      // Filtrer uniquement les demandes reçues (où currentUser est le receiver)
+      const received = data.filter((r: FriendRequest) => 
+        r.receiver.toLowerCase() === currentUser.toLowerCase() && 
+        r.status === 'pending'
+      );
+      setReceivedRequests(received);
     } catch (error) {
       console.error('Error loading received requests:', error);
       setReceivedRequests([]);
@@ -97,11 +117,17 @@ export default function FriendsScreen() {
   const loadSentRequests = async () => {
     try {
       if (!currentUser) return;
-      // Récupérer toutes les demandes où l'utilisateur est le sender
-      const allRequests = await api.get(`/api/friend-requests/${currentUser}`);
-      // Sur le backend, on récupère les demandes reçues. Il faut aussi récupérer les envoyées
-      // Pour l'instant on va faire une requête générale
+      // Récupérer toutes les demandes (envoyées + reçues)
       const data = await api.get(`/api/friends-all/${currentUser}`);
+      
+      // Vérifier que data est un tableau
+      if (!Array.isArray(data)) {
+        console.warn('Sent requests data is not an array:', data);
+        setSentRequests([]);
+        return;
+      }
+      
+      // Filtrer uniquement les demandes envoyées (où currentUser est le sender)
       const sent = data.filter((r: any) => 
         r.sender.toLowerCase() === currentUser.toLowerCase() && 
         r.status === 'pending'
