@@ -13,14 +13,22 @@ const { Pool } = pkg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  max: process.env.DB_CONN_LIMIT || 10,
-});
+// Configuration PostgreSQL : utilise DATABASE_URL si disponible, sinon les variables individuelles
+const pool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false
+      }
+    })
+  : new Pool({
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      max: process.env.DB_CONN_LIMIT || 10,
+    });
 
 pool.connect()
   .then(() => console.log("✅ Connexion PostgreSQL Render OK"))
