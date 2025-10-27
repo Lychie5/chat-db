@@ -119,6 +119,128 @@ app.post("/api/new-conversation", async (req, res) => {
   }
 });
 
+// Envoyer une demande de conversation
+app.post("/api/send-conversation-request", async (req, res) => {
+  const { sender, receiver, preview } = req.body;
+  if (!sender || !receiver) return res.status(400).send("Champs manquants");
+  
+  try {
+    // Vérifier qu'ils sont amis
+    const friends = await query(
+      "SELECT * FROM friends WHERE ((LOWER(sender)=LOWER($1) AND LOWER(receiver)=LOWER($2)) OR (LOWER(sender)=LOWER($2) AND LOWER(receiver)=LOWER($1))) AND status='accepted'",
+      [sender, receiver]
+    );
+    
+    if (friends.length === 0) {
+      return res.status(403).json({ error: "Vous devez être amis pour démarrer une conversation" });
+    }
+    
+    // Vérifier si une demande existe déjà
+    const existing = await query(
+      "SELECT * FROM conversation_requests WHERE (LOWER(sender)=LOWER($1) AND LOWER(receiver)=LOWER($2)) OR (LOWER(sender)=LOWER($2) AND LOWER(receiver)=LOWER($1))",
+      [sender, receiver]
+    );
+    
+    if (existing.length > 0) {
+      return res.status(400).send("Demande déjà existante");
+    }
+    
+    // Vérifier si une conversation existe déjà
+    const conv = await query(
+      "SELECT * FROM conversations WHERE (LOWER(user1)=LOWER($1) AND LOWER(user2)=LOWER($2)) OR (LOWER(user1)=LOWER($2) AND LOWER(user2)=LOWER($1))",
+      [sender, receiver]
+    );
+    
+    if (conv.length > 0) {
+      return res.status(400).send("Conversation déjà existante");
+    }
+    
+    // Créer la demande
+    await query(
+      "INSERT INTO conversation_requests (sender, receiver, preview, status) VALUES ($1, $2, $3, 'pending')",
+      [sender, receiver, preview || ""]
+    );
+    
+    // Notifier en temps réel
+    io.emit('new conversation request', { sender, receiver, preview });
+    
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Erreur send-conversation-request:", err);
+    res.status(500).send("Erreur SQL");
+  }
+});
+
+// Récupérer les demandes de conversation reçues
+app.get("/api/conversation-requests/:user", async (req, res) => {
+  const user = req.params.user;
+  try {
+    const requests = await query(
+      "SELECT * FROM conversation_requests WHERE LOWER(receiver)=LOWER($1) AND status='pending'",
+      [user]
+    );
+    res.json(requests);
+  } catch (err) {
+    console.error("Erreur conversation-requests:", err);
+    res.status(500).send("Erreur SQL");
+  }
+});
+
+// Accepter une demande de conversation
+app.post("/api/conversation-accept/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    // Récupérer la demande
+    const requests = await query(
+      "SELECT * FROM conversation_requests WHERE id=$1",
+      [id]
+    );
+    
+    if (requests.length === 0) {
+      return res.status(404).send("Demande introuvable");
+    }
+    
+    const request = requests[0];
+    
+    // Créer la conversation
+    const result = await query(
+      "INSERT INTO conversations (user1, user2) VALUES ($1, $2) RETURNING *",
+      [request.sender, request.receiver]
+    );
+    
+    // Supprimer la demande
+    await query("DELETE FROM conversation_requests WHERE id=$1", [id]);
+    
+    const conversation = result[0];
+    
+    // Notifier en temps réel
+    io.emit('conversation accepted', {
+      id: conversation.id,
+      user1: conversation.user1,
+      user2: conversation.user2,
+      sender: request.sender,
+      receiver: request.receiver
+    });
+    
+    res.json(conversation);
+  } catch (err) {
+    console.error("Erreur conversation-accept:", err);
+    res.status(500).send("Erreur SQL");
+  }
+});
+
+// Refuser une demande de conversation
+app.post("/api/conversation-decline/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    await query("DELETE FROM conversation_requests WHERE id=$1", [id]);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("Erreur conversation-decline:", err);
+    res.status(500).send("Erreur SQL");
+  }
+});
+
 app.get("/api/messages/:id", async (req, res) => {
   const id = req.params.id;
   try {
@@ -167,7 +289,7 @@ io.on("connection", (socket) => {
     const room = `conv-${convoId}`;
     try {
       await query(
-        "INSERT INTO messages (conversation_id, sender, content) VALUES ($1, $2, $3)",
+        "INSERT INTO messages (conversation_id, sender, body) VALUES ($1, $2, $3)",
         [convoId, msg.pseudo, msg.text]
       );
       io.to(room).emit("chat message", msg);
