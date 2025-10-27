@@ -7,12 +7,13 @@ body {
   flex-direction:column;
   margin: 0;
   padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .friends-container { 
   flex:1; 
   padding: 20px;
-  padding-bottom:100px; 
+  padding-bottom:20px; 
   box-sizing:border-box; 
   max-width: 1200px;
   margin: 0 auto;
@@ -20,15 +21,38 @@ body {
 }
 
 .friends-header { 
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 24px;
 }
 
 .friends-header h2 { 
+  flex: 1;
+  text-align: center;
   font-size: 1.8em; 
   font-weight:600; 
   color: #eaf6ff;
   margin: 0;
+}
+
+.back-btn {
+  background: rgba(15, 23, 32, 0.6);
+  border: 1px solid rgba(8, 200, 255, 0.08);
+  color: #0ea5ff;
+  font-size: 28px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(15, 23, 32, 0.8);
+}
+
+.header-spacer {
+  width: 40px;
 }
 
 /* Search and Add Bar */

@@ -1,23 +1,129 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profil | ChatBox</title>
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/profile.css">
-</head>
-<body class="profile-body">
-  <div class="profile-container-wrap">
-    <div class="profile-container">
-    <h2>Bienvenue 👋</h2>
-    <p>Connecté en tant que : <span id="userPseudo"></span></p>
+<!DOCTYPE html><!DOCTYPE html>
 
-    <button id="friendsBtn">👥 Mes amis</button>
-    <button id="convBtn">💬 Mes discussions</button>
-    <button id="logoutBtn">🚪 Déconnexion</button>
+<html lang="fr"><html lang="fr">
+
+<head><head>
+
+  <meta charset="UTF-8">  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Profil | ChatBox</title>  <title>Profil | ChatBox</title>
+
+  <link rel="stylesheet" href="css/base.css">  <link rel="stylesheet" href="css/base.css">
+
+  <link rel="stylesheet" href="css/profile.css">  <link rel="stylesheet" href="css/profile.css">
+
+</head></head>
+
+<body class="profile-body"><body class="profile-body">
+
+  <div class="profile-container">  <div class="profile-container">
+
+    <!-- Header avec avatar -->    <!-- Header avec avatar -->
+
+    <div class="profile-header">    <div class="profile-header">
+
+      <div class="avatar-large">      <div class="avatar-large">
+
+        <span id="avatarLetter"></span>        <span id="avatarLetter"></span>
+
+      </div>      </div>
+
+      <h2 id="userName">Utilisateur</h2>      <h2 id="userName">Utilisateur</h2>
+
+      <p class="user-status">En ligne</p>      <p class="user-status">En ligne</p>
+
+    </div>    </div>
+
+
+
+    <!-- Bouton Déconnexion -->    <!-- Menu Items -->
+
+    <button class="logout-button" id="logoutBtn">    <div class="menu-container">
+
+      <span class="icon">🚪</span>      <button class="menu-item" onclick="window.location.href='friends.html'">
+
+      <span>Déconnexion</span>        <div class="menu-icon-container">
+
+    </button>          <span class="icon">�</span>
+
+        </div>
+
+    <p class="version">Version 1.0.0</p>        <span class="menu-text">Mes Amis</span>
+
+  </div>        <span class="chevron">›</span>
+
+      </button>
+
+  <nav class="bottom-nav">
+
+    <button onclick="window.location.href='index.html'">💬 Discussions</button>      <button class="menu-item" onclick="window.location.href='index.html'">
+
+    <button onclick="window.location.href='friends.html'">👥 Amis</button>        <div class="menu-icon-container">
+
+    <button class="active" onclick="window.location.href='profile.html'">👤 Profil</button>          <span class="icon">💬</span>
+
+  </nav>        </div>
+
+        <span class="menu-text">Mes Discussions</span>
+
+  <script src="/socket.io/socket.io.js"></script>        <span class="chevron">›</span>
+
+  <script src="js/socket.js"></script>      </button>
+
+  <script src="js/profile.js"></script>
+
+</body>      <button class="menu-item">
+
+        <div class="menu-icon-container">
+
+</html>          <span class="icon">🔔</span>
+
+        </div>
+        <span class="menu-text">Notifications</span>
+        <span class="chevron">›</span>
+      </button>
+
+      <button class="menu-item">
+        <div class="menu-icon-container">
+          <span class="icon">🌙</span>
+        </div>
+        <span class="menu-text">Thème sombre</span>
+        <span class="chevron">›</span>
+      </button>
+
+      <button class="menu-item">
+        <div class="menu-icon-container">
+          <span class="icon">�</span>
+        </div>
+        <span class="menu-text">Confidentialité</span>
+        <span class="chevron">›</span>
+      </button>
+
+      <button class="menu-item">
+        <div class="menu-icon-container">
+          <span class="icon">❓</span>
+        </div>
+        <span class="menu-text">Aide</span>
+        <span class="chevron">›</span>
+      </button>
     </div>
+
+    <!-- Bouton Déconnexion -->
+    <button class="logout-button" id="logoutBtn">
+      <span class="icon">🚪</span>
+      <span>Déconnexion</span>
+    </button>
+
+    <p class="version">Version 1.0.0</p>
   </div>
+
+  <nav class="bottom-nav">
+    <button onclick="window.location.href='index.html'">💬 Discussions</button>
+    <button onclick="window.location.href='friends.html'">👥 Amis</button>
+    <button class="active" onclick="window.location.href='profile.html'">👤 Profil</button>
+  </nav>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket.js"></script>

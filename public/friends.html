@@ -15,7 +15,9 @@
   <div class="friends-container">
 
     <header class="friends-header">
+      <button class="back-btn" onclick="window.location.href='profile.html'">‹</button>
       <h2>👥 Amis</h2>
+      <div class="header-spacer"></div>
     </header>
 
     <!-- Search and Add Friend Bar -->
@@ -96,12 +98,6 @@
       </div>
     </div>
   </div>
-
-  <nav class="bottom-nav">
-    <button onclick="window.location.href='index.html'">� Discussions</button>
-    <button class="active" onclick="window.location.href='friends.html'">👥 Amis</button>
-    <button onclick="window.location.href='profile.html'">� Profil</button>
-  </nav>
   
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket.js"></script>
