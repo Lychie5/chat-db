@@ -15,39 +15,92 @@
   <div class="friends-container">
 
     <header class="friends-header">
-      <h2>👥 Mes Amis</h2>
+      <h2>👥 Amis</h2>
     </header>
 
-    <section id="friendsList" class="friends-section">
-      <p class="empty-msg">Aucun ami pour le moment</p>
-    </section>
+    <!-- Search and Add Friend Bar -->
+    <div class="search-add-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input id="searchInput" type="text" placeholder="Rechercher un ami...">
+      </div>
+      <button class="add-button" onclick="showAddFriendModal()">➕</button>
+    </div>
 
-    <h3>📨 Demandes reçues</h3>
-    <section id="requests" class="friends-section">
-      <p class="empty-msg">Aucune demande reçue</p>
-    </section>
+    <!-- Tabs Navigation -->
+    <div class="tabs-container">
+      <button class="tab active" data-tab="friends">
+        <span class="tab-icon">👥</span>
+        <span class="tab-text">Mes amis</span>
+        <span class="badge" id="friendsBadge">0</span>
+      </button>
+      <button class="tab" data-tab="received">
+        <span class="tab-icon">📬</span>
+        <span class="tab-text">Reçues</span>
+        <span class="badge badge-alert" id="receivedBadge">0</span>
+      </button>
+      <button class="tab" data-tab="sent">
+        <span class="tab-icon">📤</span>
+        <span class="tab-text">Envoyées</span>
+        <span class="badge" id="sentBadge">0</span>
+      </button>
+    </div>
 
-    <h3>📤 Demandes envoyées</h3>
-    <section id="sentRequests" class="friends-section">
-      <p class="empty-msg">Aucune demande envoyée</p>
-    </section>
+    <!-- Tab Content -->
+    <div class="tab-content active" id="friendsContent">
+      <section id="friendsList" class="friends-section">
+        <div class="empty-state">
+          <span class="empty-icon">👥</span>
+          <p class="empty-title">Aucun ami</p>
+          <p class="empty-subtitle">Ajoutez des amis pour commencer à discuter !</p>
+        </div>
+      </section>
+    </div>
 
-    <h3>➕ Ajouter un(e) ami(e)</h3>
-    <section class="add-friend-box">
-    <p>Entrez le pseudo de la personne que vous souhaitez ajouter :</p>
-    <form id="addFriendForm" class="add-friend-form">
-        <input id="friendPseudo" type="text" placeholder="Ex : Momo..." required>
-        <button type="submit">Envoyer la demande</button>
-    </form>
-    <p id="friendMessage" class="friend-message"></p>
-    </section>
+    <div class="tab-content" id="receivedContent">
+      <section id="requests" class="friends-section">
+        <div class="empty-state">
+          <span class="empty-icon">📬</span>
+          <p class="empty-title">Aucune demande</p>
+          <p class="empty-subtitle">Vous n'avez pas de demandes d'ami en attente</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="sentContent">
+      <section id="sentRequests" class="friends-section">
+        <div class="empty-state">
+          <span class="empty-icon">📤</span>
+          <p class="empty-title">Aucune demande envoyée</p>
+          <p class="empty-subtitle">Vos demandes d'ami en attente apparaîtront ici</p>
+        </div>
+      </section>
+    </div>
 
   </div>
 
+  <!-- Modal for Adding Friend -->
+  <div id="addFriendModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>➕ Ajouter un ami</h3>
+        <button class="close-btn" onclick="closeAddFriendModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Entrez le pseudo de la personne que vous souhaitez ajouter :</p>
+        <form id="addFriendForm">
+          <input id="friendPseudo" type="text" placeholder="Ex : Momo..." required>
+          <button type="submit">Envoyer la demande</button>
+        </form>
+        <p id="friendMessage" class="friend-message"></p>
+      </div>
+    </div>
+  </div>
+
   <nav class="bottom-nav">
-    <button onclick="window.location.href='profile.html'">👤 Profil</button>
+    <button onclick="window.location.href='index.html'">� Discussions</button>
     <button class="active" onclick="window.location.href='friends.html'">👥 Amis</button>
-    <button onclick="window.location.href='index.html'">💬 Discussions</button>
+    <button onclick="window.location.href='profile.html'">� Profil</button>
   </nav>
   
   <script src="/socket.io/socket.io.js"></script>
