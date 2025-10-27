@@ -62,12 +62,45 @@ export default function ChatScreen() {
     const newSocket = io(API_CONFIG.SOCKET_URL);
     
     newSocket.on('connect', () => {
-      console.log('Socket connected');
+      console.log('Socket connected:', newSocket.id);
+      // IMPORTANT: Rejoindre la room de la conversation
+      newSocket.emit('join conversation', id);
+      console.log(`📡 Joined room conv-${id}`);
     });
 
-    newSocket.on('chat message', (msg: Message) => {
-      if (msg.sender === username || msg.sender === currentUser) {
-        setMessages(prev => [...prev, msg]);
+    newSocket.on('chat message', (msg: any) => {
+      console.log('Received message:', msg);
+      // Le message est déjà dans la room, on l'ajoute directement
+      const messageToAdd: Message = {
+        id: msg.id || Date.now(),
+        sender: msg.pseudo || msg.sender,
+        body: msg.text || msg.body,
+        created_at: msg.created_at || new Date().toISOString(),
+      };
+      
+      setMessages(prev => {
+        // Éviter les doublons
+        const exists = prev.some(m => 
+          m.sender === messageToAdd.sender && 
+          m.body === messageToAdd.body &&
+          Math.abs(new Date(m.created_at).getTime() - new Date(messageToAdd.created_at).getTime()) < 1000
+        );
+        if (exists) return prev;
+        return [...prev, messageToAdd];
+      });
+      setTimeout(() => scrollToBottom(), 100);
+    });
+
+    newSocket.on('conversation history', (payload: any) => {
+      console.log('Received history:', payload);
+      if (payload && String(payload.conversation_id) === String(id)) {
+        const msgs = payload.messages || [];
+        setMessages(msgs.map((m: any) => ({
+          id: m.id,
+          sender: m.sender || m.pseudo,
+          body: m.body || m.content || m.text,
+          created_at: m.created_at,
+        })));
         setTimeout(() => scrollToBottom(), 100);
       }
     });
@@ -82,30 +115,31 @@ export default function ChatScreen() {
   const sendMessage = async () => {
     if (!messageText.trim() || !currentUser) return;
 
+    const msgText = messageText.trim();
+    setMessageText('');
+
     try {
-      const newMessage = {
+      const messageData = {
         conversation_id: parseInt(id),
-        sender: currentUser,
-        body: messageText.trim(),
+        pseudo: currentUser,
+        text: msgText,
       };
 
-      // Envoyer via Socket.IO
-      if (socket) {
-        socket.emit('chat message', newMessage);
+      // Envoyer via Socket.IO (format compatible avec le serveur)
+      if (socket && socket.connected) {
+        socket.emit('chat message', messageData);
+        console.log('Message sent via socket:', messageData);
+      } else {
+        console.error('Socket not connected!');
       }
 
-      // Ajouter localement
-      setMessages(prev => [...prev, {
-        id: Date.now(),
-        sender: currentUser,
-        body: messageText.trim(),
-        created_at: new Date().toISOString(),
-      }]);
-
-      setMessageText('');
-      setTimeout(() => scrollToBottom(), 100);
+      // Note: Le message sera ajouté via l'événement 'chat message' reçu du serveur
+      // Pas besoin de l'ajouter localement ici pour éviter les doublons
+      
     } catch (error) {
       console.error('Error sending message:', error);
+      // En cas d'erreur, remettre le texte dans l'input
+      setMessageText(msgText);
     }
   };
 

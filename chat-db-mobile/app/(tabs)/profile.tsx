@@ -64,7 +64,10 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/notifications')}
+          >
             <View style={styles.menuIconContainer}>
               <Ionicons name="notifications" size={24} color="#0ea5ff" />
             </View>
@@ -72,7 +75,10 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#94a3b8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/theme')}
+          >
             <View style={styles.menuIconContainer}>
               <Ionicons name="moon" size={24} color="#0ea5ff" />
             </View>
@@ -80,7 +86,10 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#94a3b8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/privacy')}
+          >
             <View style={styles.menuIconContainer}>
               <Ionicons name="lock-closed" size={24} color="#0ea5ff" />
             </View>
@@ -88,7 +97,10 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={20} color="#94a3b8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/help')}
+          >
             <View style={styles.menuIconContainer}>
               <Ionicons name="help-circle" size={24} color="#0ea5ff" />
             </View>

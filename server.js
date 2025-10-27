@@ -310,18 +310,37 @@ io.on("connection", (socket) => {
   });
 
   socket.on("chat message", async (msg) => {
-    if (!msg || !msg.conversation_id || !msg.pseudo || !msg.text) return;
+    if (!msg || !msg.conversation_id || !msg.pseudo || !msg.text) {
+      console.error("❌ Message invalide reçu:", msg);
+      return;
+    }
     const convoId = msg.conversation_id;
     const room = `conv-${convoId}`;
     try {
-      await query(
-        "INSERT INTO messages (conversation_id, sender, body) VALUES ($1, $2, $3)",
+      // Sauvegarder en base de données
+      const result = await query(
+        "INSERT INTO messages (conversation_id, sender, body, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *",
         [convoId, msg.pseudo, msg.text]
       );
-      io.to(room).emit("chat message", msg);
-      console.log(`✉️ Message ${msg.pseudo} → ${room}`);
+      
+      const savedMessage = result[0];
+      
+      // Préparer le message à envoyer avec toutes les infos
+      const messageToSend = {
+        id: savedMessage.id,
+        conversation_id: convoId,
+        pseudo: savedMessage.sender,
+        sender: savedMessage.sender,
+        text: savedMessage.body,
+        body: savedMessage.body,
+        created_at: savedMessage.created_at,
+      };
+      
+      // Envoyer à TOUS les clients de la room (y compris l'expéditeur)
+      io.to(room).emit("chat message", messageToSend);
+      console.log(`✉️ Message de ${msg.pseudo} diffusé dans ${room}`);
     } catch (err) {
-      console.error("Erreur message :", err.message);
+      console.error("❌ Erreur sauvegarde message:", err.message);
     }
   });
 
