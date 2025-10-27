@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "cca3126b-f9a3-4500-bf11-7f1b7749bee1"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.mehau.chatapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
