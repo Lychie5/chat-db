@@ -1,0 +1,68 @@
+# ==========================================
+# 🐳 .dockerignore - Fichiers à exclure
+# ==========================================
+
+# Dépendances Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Tests
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+
+# Build et cache
+dist/
+build/
+.cache/
+tmp/
+temp/
+
+# Logs
+logs/
+*.log
+
+# Backups (optionnel, décommenter si vous ne voulez pas les inclure)
+# backups/
+
+# Mobile app (pas nécessaire dans le conteneur backend)
+chat-db-mobile/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Outils
+tools/
+ngrok/

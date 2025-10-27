@@ -6,85 +6,45 @@
   <title>Amis | ChatBox</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/friends.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 
 <body class="friends-body">
   <div class="friends-container">
-
+    <!-- Header -->
     <header class="friends-header">
       <button class="back-btn" onclick="window.location.href='index.html'">‹</button>
       <h2>👥 Amis</h2>
-      <div class="header-spacer"></div>
+      <span id="receivedBadge" class="notif-count" style="display: none;">0</span>
     </header>
 
     <!-- Search Bar -->
     <div class="search-add-bar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input id="searchUser" type="text" placeholder="Rechercher un utilisateur...">
-      </div>
-      <button id="searchBtn" class="add-button">🔎</button>
+      <input id="searchUser" type="text" placeholder="🔍 Rechercher un utilisateur...">
+      <button id="searchBtn">Chercher</button>
     </div>
 
     <!-- Search Results -->
-    <section id="searchResults" class="friends-section" style="margin-bottom: 16px;">
-      <p class="empty-msg">Entrez un nom d'utilisateur</p>
-    </section>
+    <section id="searchResults"></section>
 
-    <!-- Tabs Navigation -->
+    <!-- Tabs -->
     <div class="tabs-container">
-      <button class="tab active" data-tab="friends">
-        <span class="tab-icon">👥</span>
-        <span class="tab-text">Mes amis</span>
-      </button>
-      <button class="tab" data-tab="received">
-        <span class="tab-icon">📬</span>
-        <span class="tab-text">Reçues</span>
-        <span class="badge badge-alert" id="receivedBadge" style="display: none;">0</span>
-      </button>
-      <button class="tab" data-tab="sent">
-        <span class="tab-icon">📤</span>
-        <span class="tab-text">Envoyées</span>
-      </button>
+      <button class="tab active" data-tab="friends">👥 Amis</button>
+      <button class="tab" data-tab="received">📬 Reçues</button>
+      <button class="tab" data-tab="sent">📤 Envoyées</button>
     </div>
 
-    <!-- Friends Tab -->
-    <div class="section active" id="friendsSection">
-      <section id="friendsList" class="friends-section">
-        <div class="empty-state">
-          <span class="empty-icon">👥</span>
-          <p class="empty-title">Aucun ami</p>
-          <p class="empty-subtitle">Ajoutez des amis pour commencer à discuter !</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Received Requests Tab -->
-    <div class="section" id="receivedSection">
-      <section id="receivedList" class="friends-section">
-        <div class="empty-state">
-          <span class="empty-icon">📬</span>
-          <p class="empty-title">Aucune demande</p>
-          <p class="empty-subtitle">Vous n'avez pas de demandes d'ami en attente</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Sent Requests Tab -->
-    <div class="section" id="sentSection">
-      <section id="sentList" class="friends-section">
-        <div class="empty-state">
-          <span class="empty-icon">📤</span>
-          <p class="empty-title">Aucune demande envoyée</p>
-          <p class="empty-subtitle">Vos demandes d'ami en attente apparaîtront ici</p>
-        </div>
-      </section>
-    </div>
-
+    <!-- Content Sections -->
+    <section id="friendsList" class="section active"></section>
+    <section id="receivedList" class="section"></section>
+    <section id="sentList" class="section"></section>
   </div>
+
+  <!-- Navigation -->
+  <nav class="bottom-nav">
+    <button onclick="window.location.href='profile.html'">� Profil</button>
+    <button class="active" onclick="window.location.href='friends.html'">👥 Amis</button>
+    <button onclick="window.location.href='index.html'">� Discussions</button>
+  </nav>
   
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/socket.js"></script>

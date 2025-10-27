@@ -10,49 +10,118 @@
 
 .profile-container {
   min-height: calc(100vh - 80px);
-  padding: 80px 20px 120px;
+  padding: 20px 16px 120px;
   color: #eaf6ff;
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Header avec Avatar */
 .profile-header {
   text-align: center;
-  padding: 20px;
-  margin-bottom: 40px;
+  padding: 40px 20px;
+  margin-bottom: 24px;
+  width: 100%;
 }
 
 .avatar-large {
-  width: 120px;
-  height: 120px;
-  border-radius: 60px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
   background: rgba(14, 165, 255, 0.2);
   border: 3px solid rgba(8, 200, 255, 0.3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(14, 165, 255, 0.15);
 }
 
 .avatar-large span {
-  font-size: 50px;
+  font-size: 40px;
   font-weight: bold;
   color: #0ea5ff;
 }
 
 .profile-header h2 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
   color: #eaf6ff;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 .user-status {
-  font-size: 16px;
+  font-size: 14px;
   color: #2dd4bf;
   margin: 0;
+}
+
+/* Menu Container */
+.menu-container {
+  width: 100%;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: rgba(15, 23, 32, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(8, 200, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #eaf6ff;
+  text-align: left;
+  font-size: 16px;
+}
+
+.menu-item:hover {
+  background: rgba(15, 23, 32, 0.8);
+  border-color: rgba(8, 200, 255, 0.2);
+  transform: translateX(4px);
+}
+
+.menu-item:active {
+  transform: scale(0.98);
+}
+
+.menu-icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(14, 165, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.menu-item .icon {
+  font-size: 24px;
+  filter: hue-rotate(190deg) saturate(1.5);
+}
+
+.menu-text {
+  flex: 1;
+  font-size: 16px;
+  color: #eaf6ff;
+  font-weight: 500;
+}
+
+.chevron {
+  color: #94a3b8;
+  font-size: 20px;
+  margin-left: auto;
 }
 
 /* Logout Button */
@@ -64,21 +133,25 @@
   background: linear-gradient(180deg, #ff6b6b, #ee5a52);
   border: none;
   border-radius: 10px;
-  padding: 14px 28px;
+  padding: 16px 28px;
   margin: 20px 0;
   color: white;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: none;
-  min-width: 180px;
-  max-width: 250px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+  width: 100%;
+  max-width: 400px;
 }
 
 .logout-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+}
+
+.logout-button:active {
+  transform: translateY(0);
 }
 
 .logout-button .icon {
@@ -91,4 +164,5 @@
   color: #94a3b8;
   font-size: 12px;
   margin: 20px 0 0 0;
+  padding-bottom: 20px;
 }

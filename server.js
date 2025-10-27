@@ -62,6 +62,15 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/login.html"));
 });
 
+// Health check endpoint pour Docker et monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.get("/api/check-user/:pseudo", async (req, res) => {
   const pseudo = req.params.pseudo;
   try {
