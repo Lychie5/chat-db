@@ -202,6 +202,10 @@ app.post("/api/send-friend-request", async (req, res) => {
       "INSERT INTO friends (sender, receiver, status) VALUES ($1, $2, 'pending')",
       [sender, receiver]
     );
+    
+    // Émettre un événement Socket.IO pour notifier le destinataire en temps réel
+    io.emit('new friend request', { sender, receiver });
+    
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -218,6 +222,21 @@ app.get("/api/friends/:user", async (req, res) => {
     );
     res.json(results);
   } catch {
+    res.status(500).send("Erreur SQL");
+  }
+});
+
+// Récupérer les demandes d'amis reçues (en attente)
+app.get("/api/friend-requests/:user", async (req, res) => {
+  const user = req.params.user;
+  try {
+    const results = await query(
+      "SELECT * FROM friends WHERE LOWER(receiver)=LOWER($1) AND status='pending'",
+      [user]
+    );
+    res.json(results);
+  } catch (err) {
+    console.error("Erreur lors de la récupération des demandes:", err);
     res.status(500).send("Erreur SQL");
   }
 });
