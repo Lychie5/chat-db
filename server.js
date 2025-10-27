@@ -380,6 +380,21 @@ app.post("/api/send-friend-request", async (req, res) => {
   }
 });
 
+// Récupérer TOUTES les demandes d'amis (envoyées ET reçues) pour un utilisateur
+app.get("/api/friends-all/:user", async (req, res) => {
+  const user = req.params.user;
+  try {
+    const rows = await query(
+      "SELECT * FROM friends WHERE LOWER(sender)=LOWER($1) OR LOWER(receiver)=LOWER($1)",
+      [user]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("Erreur friends-all:", err);
+    res.status(500).send("Erreur SQL");
+  }
+});
+
 app.get("/api/friends/:user", async (req, res) => {
   const user = req.params.user;
   try {
