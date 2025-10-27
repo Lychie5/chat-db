@@ -310,35 +310,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const preview = "👋 " + currentUser + " veut discuter avec toi !"
 
-      let apiRes
       try {
-        apiRes = await apiFetch('/api/send-conversation-request', {
+        const apiRes = await apiFetch('/api/send-conversation-request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sender: currentUser, receiver, preview })
         })
-      } catch (err) {
-        console.error('Erreur réseau:', err)
-        showToast('Erreur réseau lors de l’envoi de la demande', { type: 'error' })
-        return
-      }
 
-      socket.emit('conversation request', { sender: currentUser, receiver, preview }, (ack) => {
-        if (ack && ack.ok) {
-          showToast(`✅ Demande envoyée à ${receiver}`, { type: 'success' })
+        const data = await apiRes.json()
+        
+        if (data.ok) {
+          window.showToast(`✅ Demande envoyée à ${receiver}`, { type: 'success' })
           input.value = ''
-        } else if (ack && ack.exists) {
-          showToast(`⚠️ Demande déjà existante (id=${ack.id})`, { type: 'info' })
+        } else if (data.exists) {
+          window.showToast(`⚠️ Demande déjà existante`, { type: 'info' })
           input.value = ''
         } else {
-          if (apiRes && apiRes.ok) {
-            showToast(`✅ Demande envoyée à ${receiver}`, { type: 'success' })
-            input.value = ''
-          } else {
-            showToast('❌ Erreur lors de l’envoi de la demande', { type: 'error' })
-          }
+          window.showToast(data.error || '❌ Erreur lors de l\'envoi de la demande', { type: 'error' })
         }
-      })
+      } catch (err) {
+        console.error('Erreur:', err)
+        window.showToast('❌ Erreur réseau', { type: 'error' })
+      }
     })
   }
 
