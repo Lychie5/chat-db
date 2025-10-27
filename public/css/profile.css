@@ -10,20 +10,18 @@
 
 .profile-container {
   min-height: calc(100vh - 80px);
-  background: linear-gradient(180deg, #06070a, #0b0f14);
-  padding: 20px;
-  padding-bottom: 100px;
+  padding: 80px 20px 120px;
   color: #eaf6ff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
 /* Header avec Avatar */
 .profile-header {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
+  margin-bottom: 40px;
 }
 
 .avatar-large {
@@ -59,22 +57,23 @@
 
 /* Logout Button */
 .logout-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   background: linear-gradient(180deg, #ff6b6b, #ee5a52);
   border: none;
   border-radius: 10px;
-  padding: 16px 32px;
-  margin: 40px 0 20px;
+  padding: 14px 28px;
+  margin: 20px 0;
   color: white;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  width: auto;
-  min-width: 200px;
+  box-shadow: none;
+  min-width: 180px;
+  max-width: 250px;
 }
 
 .logout-button:hover {
