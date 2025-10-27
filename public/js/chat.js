@@ -25,8 +25,9 @@ socket.on('conversation history', payload => {
     msgs.forEach(m => {
       const p = m.pseudo || m.sender || m.user || null
       const c = m.content || m.body || m.text || null
-      addMessage(p, c)
-      try { persistMessage(convId, { pseudo: p, content: c, created_at: m.created_at || new Date().toISOString() }) } catch (e) {}
+      const t = m.created_at || m.timestamp || null
+      addMessage(p, c, t)
+      try { persistMessage(convId, { pseudo: p, content: c, created_at: t || new Date().toISOString() }) } catch (e) {}
     })
     try { main.scrollTop = main.scrollHeight } catch (e) {}
   } catch (err) { console.warn('Erreur traitement conversation history', err) }
@@ -41,8 +42,9 @@ socket.on('conversation history', payload => {
     msgs.forEach(m => {
       const p = m.pseudo || m.sender || null
       const c = m.content || m.body || null
-      addMessage(p, c)
-      try { persistMessage(convId, { pseudo: p, content: c, created_at: m.created_at || new Date().toISOString() }) } catch (e) {}
+      const t = m.created_at || m.timestamp || null
+      addMessage(p, c, t)
+      try { persistMessage(convId, { pseudo: p, content: c, created_at: t || new Date().toISOString() }) } catch (e) {}
     })
     try { setTimeout(() => { main.scrollTop = main.scrollHeight }, 80) } catch (e) {}
   } catch (err) { console.warn('Error handling conversation history', err) }
@@ -86,15 +88,16 @@ async function chargerMessages() {
       data.forEach(msg => {
         const p = msg.pseudo || msg.sender || msg.user || null
         const c = msg.content || msg.body || msg.text || msg.message || null
-        addMessage(p, c)
-        persistMessage(convId, { pseudo: p, content: c, created_at: msg.created_at || new Date().toISOString() })
+        const t = msg.created_at || msg.timestamp || null
+        addMessage(p, c, t)
+        persistMessage(convId, { pseudo: p, content: c, created_at: t || new Date().toISOString() })
       })
     } else {
       // fallback to local history
       try {
         const key = `chat_history_${convId}`
         const arr = JSON.parse(localStorage.getItem(key)) || []
-        arr.forEach(m => addMessage(m.pseudo, m.content))
+        arr.forEach(m => addMessage(m.pseudo, m.content, m.created_at))
       } catch (e) { console.warn('local history read error', e) }
     }
   } catch (err) {
@@ -103,18 +106,18 @@ async function chargerMessages() {
       const key = `chat_history_${convId}`
       const arr = JSON.parse(localStorage.getItem(key)) || []
       main.innerHTML = ""
-      arr.forEach(m => addMessage(m.pseudo, m.content))
+      arr.forEach(m => addMessage(m.pseudo, m.content, m.created_at))
     } catch (e) { console.warn('fallback history read error', e) }
   }
 }
 
-function addMessage(from, text) {
+function addMessage(from, text, timestamp) {
   const div = document.createElement("div")
   div.classList.add("message")
   if (from === currentUser) div.classList.add("me")
   div.innerHTML = `
     <div class="msg-text">${text}</div>
-    <div class="timestamp">${getTime()}</div>
+    <div class="timestamp">${formatTime(timestamp)}</div>
   `
   main.appendChild(div)
   // ensure the newly added message is visible and not hidden under the fixed input
@@ -135,9 +138,10 @@ function persistMessage(convIdParam, msg) {
   } catch (e) { console.warn('persistMessage error', e) }
 }
 
-function getTime() {
-  const now = new Date()
-  return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
+function formatTime(timestamp) {
+  // Si pas de timestamp, utiliser l'heure actuelle
+  const date = timestamp ? new Date(timestamp) : new Date()
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`
 }
 
 // ✅ Envoi d’un message en temps réel
@@ -164,8 +168,9 @@ socket.on("chat message", data => {
   if (String(convIdFromSocket) == String(convId)) {
     const p = data.pseudo || data.sender || data.user || null
     const c = data.text || data.content || data.body || data.message || null
-    addMessage(p, c)
-    persistMessage(convId, { pseudo: p, content: c, created_at: new Date().toISOString() })
+    const t = data.created_at || data.timestamp || new Date().toISOString()
+    addMessage(p, c, t)
+    persistMessage(convId, { pseudo: p, content: c, created_at: t })
   } else {
     // increment unread for other conversation
     try {

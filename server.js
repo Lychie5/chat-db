@@ -17,9 +17,9 @@ const __dirname = path.dirname(__filename);
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: {
+      ssl: process.env.NODE_ENV === 'production' ? {
         rejectUnauthorized: false
-      }
+      } : false
     })
   : new Pool({
       host: process.env.DB_HOST,
@@ -28,6 +28,7 @@ const pool = process.env.DATABASE_URL
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       max: process.env.DB_CONN_LIMIT || 10,
+      ssl: false // Pas de SSL en local
     });
 
 pool.connect()
