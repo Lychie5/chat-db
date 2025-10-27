@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       let apiRes
       try {
-        apiRes = await apiFetch('/api/conversation-request', {
+        apiRes = await apiFetch('/api/send-conversation-request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sender: currentUser, receiver, preview })
