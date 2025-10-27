@@ -170,11 +170,11 @@ body {
 }
 
 /* Tab Content */
-.tab-content {
+.section {
   display: none;
 }
 
-.tab-content.active {
+.section.active {
   display: block;
 }
 
@@ -216,6 +216,7 @@ body {
 .friend-item { 
   display:flex; 
   align-items:center; 
+  justify-content: space-between;
   gap: 12px;
   background: rgba(15, 23, 32, 0.6);
   padding:12px; 
@@ -230,66 +231,92 @@ body {
   box-shadow: 0 8px 20px rgba(2,6,12,0.5);
 }
 
-.friend-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 25px;
+.friend-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background: rgba(14, 165, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   color: #0ea5ff;
+  border: 2px solid rgba(14, 165, 255, 0.3);
 }
 
-.friend-info {
-  flex: 1;
+.friend-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .friend-name {
   font-weight: 600;
   color: #eaf6ff;
-  margin-bottom: 4px;
+  font-size: 15px;
 }
 
 .friend-status {
   font-size: 12px;
   color: #94a3b8;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.message-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(14, 165, 255, 0.1);
+  border: none;
+  color: #0ea5ff;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #94a3b8;
+.message-btn:hover {
+  background: rgba(14, 165, 255, 0.2);
+  transform: scale(1.05);
 }
 
-.status-dot.online {
-  background: #2dd4bf;
-}
-
-.message-button {
-  background: none;
+.delete-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 107, 107, 0.1);
   border: none;
-  padding: 8px;
-  color: #0ea5ff;
-  font-size: 20px;
+  color: #ff6b6b;
   cursor: pointer;
-  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.message-button:hover {
-  transform: scale(1.1);
+.delete-btn:hover {
+  background: rgba(255, 107, 107, 0.2);
+  transform: scale(1.05);
 }
 
 /* Request Item */
 .request-item { 
   display:flex; 
   align-items:center; 
+  justify-content: space-between;
   gap: 12px;
   background: rgba(15, 23, 32, 0.6);
   border-radius:12px; 
@@ -300,17 +327,15 @@ body {
 
 .request-info {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .request-name {
   font-weight: 600;
   color: #eaf6ff;
-  margin-bottom: 2px;
-}
-
-.request-label {
-  font-size: 13px;
-  color: #94a3b8;
+  font-size: 15px;
 }
 
 .request-actions { 
@@ -318,26 +343,92 @@ body {
   gap:8px;
 }
 
-.request-actions button { 
-  width: 36px;
-  height: 36px;
-  border-radius:18px; 
+.accept-btn, .decline-btn { 
+  padding: 8px 16px;
+  border-radius: 8px; 
   color:#fff; 
   border:none;
   cursor: pointer;
-  transition: transform 0.2s;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
 }
 
-.request-actions button:hover {
-  transform: scale(1.05);
-}
-
-.request-actions button.accept { 
+.accept-btn { 
   background: #2dd4bf;
 }
 
-.request-actions button.decline { 
+.accept-btn:hover {
+  background: #25c4ad;
+  transform: translateY(-2px);
+}
+
+.decline-btn { 
   background: #ff6b6b;
+}
+
+.decline-btn:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+}
+
+/* User Result (Search) */
+.user-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 32, 0.6);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(8, 200, 255, 0.08);
+}
+
+.username {
+  flex: 1;
+  font-weight: 600;
+  color: #eaf6ff;
+  font-size: 15px;
+}
+
+.add-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #0ea5ff;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  background: #0c8fd9;
+  transform: translateY(-2px);
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.status-badge.pending {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.empty-msg {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 14px;
 }
 
 .cancel-button {

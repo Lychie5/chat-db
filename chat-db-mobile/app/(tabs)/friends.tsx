@@ -240,6 +240,36 @@ export default function FriendsScreen() {
     }
   };
 
+  const handleDeleteFriend = async (friendName: string) => {
+    Alert.alert(
+      'Supprimer cet ami',
+      `Voulez-vous vraiment supprimer ${friendName} de vos amis ?`,
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.post('/api/delete-friend', {
+                user1: currentUser,
+                user2: friendName,
+              });
+              Alert.alert('Succès', `${friendName} a été retiré de vos amis`);
+              loadFriends();
+            } catch (error) {
+              console.error('Error deleting friend:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer cet ami');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderFriend = ({ item }: { item: Friend }) => (
     <View style={styles.friendItem}>
       <View style={styles.avatar}>
@@ -260,6 +290,12 @@ export default function FriendsScreen() {
         onPress={() => handleStartConversation(item.pseudo)}
       >
         <Ionicons name="chatbubble" size={20} color="#0ea5ff" />
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={styles.deleteButton}
+        onPress={() => handleDeleteFriend(item.pseudo)}
+      >
+        <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
       </TouchableOpacity>
     </View>
   );
@@ -547,6 +583,15 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     padding: 8,
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
   emptyState: {
     flex: 1,
