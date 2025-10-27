@@ -120,12 +120,11 @@ function addMessage(from, text, timestamp) {
     <div class="timestamp">${formatTime(timestamp)}</div>
   `
   main.appendChild(div)
-  // ensure the newly added message is visible and not hidden under the fixed input
-  try {
-    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  } catch (e) {
+  
+  // Force le scroll vers le bas après l'ajout du message
+  requestAnimationFrame(() => {
     main.scrollTop = main.scrollHeight
-  }
+  })
 }
 
 function persistMessage(convIdParam, msg) {
@@ -171,6 +170,11 @@ socket.on("chat message", data => {
     const t = data.created_at || data.timestamp || new Date().toISOString()
     addMessage(p, c, t)
     persistMessage(convId, { pseudo: p, content: c, created_at: t })
+    
+    // Scroll automatique après réception d'un message
+    requestAnimationFrame(() => {
+      main.scrollTop = main.scrollHeight
+    })
   } else {
     // increment unread for other conversation
     try {

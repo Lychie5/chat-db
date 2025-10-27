@@ -64,11 +64,14 @@ body {
 main {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 20px;
   padding-bottom: 90px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
 
 /* Messages */
