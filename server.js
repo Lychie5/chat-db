@@ -119,6 +119,32 @@ app.post("/api/new-conversation", async (req, res) => {
   }
 });
 
+// Créer ou récupérer une conversation entre deux utilisateurs (alias de /api/new-conversation)
+app.post("/api/conversation-between/:user1/:user2", async (req, res) => {
+  const { user1, user2 } = req.params;
+  if (!user1 || !user2) return res.status(400).send("Champs manquants");
+  try {
+    const frows = await query(
+      "SELECT * FROM friends WHERE ((sender=$1 AND receiver=$2) OR (sender=$2 AND receiver=$1)) AND status='accepted' LIMIT 1",
+      [user1, user2]
+    );
+    if (!frows.length) return res.status(403).json({ error: "not_friends" });
+    const exists = await query(
+      "SELECT * FROM conversations WHERE (user1=$1 AND user2=$2) OR (user1=$2 AND user2=$1)",
+      [user1, user2]
+    );
+    if (exists.length > 0) return res.json({ id: exists[0].id });
+    const result = await query(
+      "INSERT INTO conversations (user1, user2) VALUES ($1, $2) RETURNING id",
+      [user1, user2]
+    );
+    res.json({ id: result[0].id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erreur SQL");
+  }
+});
+
 // Envoyer une demande de conversation
 app.post("/api/send-conversation-request", async (req, res) => {
   const { sender, receiver, preview } = req.body;
