@@ -117,8 +117,9 @@ export default function FriendsScreen() {
   const loadSentRequests = async () => {
     try {
       if (!currentUser) return;
-      // Récupérer toutes les demandes (envoyées + reçues)
-      const data = await api.get(`/api/friends-all/${currentUser}`);
+      
+      // Utiliser l'endpoint existant qui renvoie toutes les demandes
+      const data = await api.get(`/api/friend-requests/${currentUser}`);
       
       // Vérifier que data est un tableau
       if (!Array.isArray(data)) {

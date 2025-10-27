@@ -408,12 +408,13 @@ app.get("/api/friends/:user", async (req, res) => {
   }
 });
 
-// Récupérer les demandes d'amis reçues (en attente)
+// Récupérer les demandes d'amis (reçues ET envoyées)
 app.get("/api/friend-requests/:user", async (req, res) => {
   const user = req.params.user;
   try {
+    // Récupérer toutes les demandes où l'utilisateur est impliqué
     const results = await query(
-      "SELECT * FROM friends WHERE LOWER(receiver)=LOWER($1) AND status='pending'",
+      "SELECT * FROM friends WHERE (LOWER(receiver)=LOWER($1) OR LOWER(sender)=LOWER($1)) AND status='pending'",
       [user]
     );
     res.json(results);
