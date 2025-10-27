@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Conversations | ChatBox</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="index-body">
+
+  <div class="index-container">
+    <!-- Header -->
+    <header class="index-header">
+      <button class="back-btn" onclick="window.location.href='profile.html'">‹</button>
+      <h2>💬 Mes Conversations</h2>
+      <div id="notifIcon" class="notif-bell" onclick="window.location.href='conv_requests.html'">
+        🔔
+        <span id="notifCount" class="notif-count" style="display:none;">0</span>
+      </div>
+    </header>
+
+    <!-- Liste des conversations -->
+    <section id="convSection" class="conv-section"></section>
+
+    <!-- Formulaire pour démarrer une conversation -->
+    <form id="newConvForm" class="new-conv-form">
+      <input id="newConvName" type="text" placeholder="Nom de l'ami..." required>
+      <button type="submit">Démarrer</button>
+    </form>
+  </div>
+
+  <nav class="bottom-nav">
+    <button onclick="window.location.href='profile.html'">� Profil</button>
+    <button onclick="window.location.href='friends.html'">👥 Amis</button>
+    <button class="active" onclick="window.location.href='index.html'">� Discussions</button>
+  </nav>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/socket.js"></script>
+  <script src="js/index.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

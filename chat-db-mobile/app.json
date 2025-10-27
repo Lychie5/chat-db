@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Meo",
+    "slug": "meo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.meo"
+    },
+    "android": {
+      "package": "com.anonymous.Meo"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "meo"
+  }
+}

@@ -1,0 +1,51 @@
+/* === login.css === */
+.login-wrap {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, var(--bg-900), var(--bg-800));
+	padding: 26px;
+}
+
+.login-container {
+	background: linear-gradient(180deg, rgba(6,12,18,0.75), rgba(8,18,28,0.9));
+	padding: 36px 28px;
+	border-radius: 16px;
+	box-shadow: 0 30px 80px rgba(2,6,12,0.6);
+	text-align: center;
+	width: 100%;
+	max-width: 420px;
+	margin: 0 12px;
+}
+
+.login-container h2 { color: #eaf6ff; margin-bottom: 18px }
+
+.login-input {
+	width: 100%;
+	padding: 12px 14px;
+	border-radius: 10px;
+	background: rgba(255,255,255,0.02);
+	color: var(--muted);
+	border: 1px solid rgba(0,224,255,0.04);
+	box-shadow: 0 8px 30px rgba(0,220,255,0.03);
+	margin-bottom: 12px;
+}
+
+.login-submit {
+	margin-top: 8px;
+	padding: 12px 18px;
+	border-radius: 10px;
+	background: linear-gradient(180deg, var(--accent), var(--accent-2));
+	border: none;
+	color: #fff;
+	width: 100%;
+	font-weight: 600;
+}
+
+/* Small screens: ensure comfortable spacing */
+@media (max-width: 480px) {
+	.login-container { padding: 22px 18px; border-radius: 12px }
+	.login-input { padding: 14px 12px; font-size: 1rem }
+	.login-submit { padding: 13px 12px; font-size: 1rem }
+}
