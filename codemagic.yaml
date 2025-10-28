@@ -144,44 +144,6 @@ workflows:
           ls -la
           cd ..
           echo "✓ Pods installed with signing disabled"
-      - name: Bundle JavaScript manually
-        script: |
-          # Install React Native CLI tools
-          npm install --save-dev @react-native-community/cli-platform-ios
-          
-          echo "=== Attempting to bundle JS ==="
-          
-          # Try with react-native CLI
-          if node_modules/.bin/react-native bundle \
-            --platform ios \
-            --dev false \
-            --entry-file index.js \
-            --bundle-output ios/main.jsbundle \
-            --assets-dest ios 2>&1; then
-            echo "✓ react-native bundle succeeded"
-            ls -lh ios/main.jsbundle
-          else
-            echo "⚠ react-native bundle failed, trying alternative..."
-            
-            # Alternative: use node directly with metro
-            node -e "
-              const Metro = require('metro');
-              const fs = require('fs');
-              const path = require('path');
-              
-              Metro.runBuild({
-                entry: 'index.js',
-                out: 'ios/main.jsbundle',
-                platform: 'ios',
-                minify: true,
-                dev: false
-              }).catch(console.error);
-            " || echo "Metro bundling also failed"
-          fi
-          
-          # Check what we have
-          echo "=== Bundle status ==="
-          ls -lh ios/ | grep -E "main.jsbundle|assets" || echo "No bundle files found"
       - name: Build unsigned IPA
         script: |
           cd ios
@@ -212,37 +174,17 @@ workflows:
           
           echo "✓ App: $APP"
           
-          echo "=== App size before injection ==="
+          echo "=== App contents (bundle already included by Xcode) ==="
           du -sh "$APP/"
-          ls -lh "$APP/"
+          ls -lh "$APP/" | grep -E "main.jsbundle|meomobile|Info.plist|assets"
           
-          # Inject JS bundle into app
-          echo "=== Injecting JS bundle ==="
-          if [ -f "ios/main.jsbundle" ]; then
-            BUNDLE_SIZE=$(ls -lh ios/main.jsbundle | awk '{print $5}')
-            echo "Found main.jsbundle: $BUNDLE_SIZE"
-            cp ios/main.jsbundle "$APP/"
-            echo "✓ main.jsbundle copied"
-          else
-            echo "✗ main.jsbundle not found!"
-            echo "Searching for any bundle files:"
-            find ios -name "*.jsbundle" -o -name "main.js" -o -name "index.ios.bundle"
-          fi
-          
-          # Copy all assets from ios/ to app
-          echo "=== Copying assets ==="
-          find ios -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.ttf" -o -name "*.otf" \) -exec cp {} "$APP/" \; 2>/dev/null || true
-          
-          echo "=== App size after injection ==="
-          du -sh "$APP/"
-          ls -lh "$APP/" | head -20
-          
-          # Check if bundle is in app
+          # Verify bundle exists
           if [ -f "$APP/main.jsbundle" ]; then
-            INJECTED_SIZE=$(ls -lh "$APP/main.jsbundle" | awk '{print $5}')
-            echo "✓ Bundle in app: $INJECTED_SIZE"
+            BUNDLE_SIZE=$(ls -lh "$APP/main.jsbundle" | awk '{print $5}')
+            echo "✓ Bundle in app: $BUNDLE_SIZE"
           else
-            echo "✗ Bundle NOT in app after injection!"
+            echo "✗ Bundle NOT in app!"
+            exit 1
           fi
           
           # Ensure Info.plist is valid
@@ -260,11 +202,20 @@ workflows:
           mkdir Payload
           cp -R "$APP" Payload/
           
-          # Create IPA (use -r for recursive, -y for symlinks)
-          zip -qr meomobile.ipa Payload
+          echo "=== Payload size ==="
+          du -sh Payload/
+          ls -lh Payload/
+          
+          # Create IPA with proper compression
+          # Use -1 for fast compression (preserves file size better)
+          zip -1 -r meomobile.ipa Payload
           
           # Move to artifacts
           mv meomobile.ipa build/
+          
+          IPA_SIZE=$(ls -lh build/meomobile.ipa | awk '{print $5}')
+          echo "✓ IPA created: $IPA_SIZE"
+          
           rm -rf Payload
           
           # Validate IPA
