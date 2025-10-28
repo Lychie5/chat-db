@@ -149,14 +149,17 @@ workflows:
           cd ios
           
           echo "=== Building app ==="
-          # Build with all signing disabled at build command level
+          # Build with all signing disabled - force ARM64 architecture
           xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath ../build \
+            -arch arm64 \
             ONLY_ACTIVE_ARCH=NO \
+            VALID_ARCHS="arm64" \
+            ARCHS="arm64" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -214,6 +217,12 @@ workflows:
           /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string meomobile" "$APP/Info.plist"
           
           echo "✓ Info.plist configured"
+          
+          # Check binary architecture
+          EXEC_NAME=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP/Info.plist")
+          echo "=== Binary architecture ==="
+          file "$APP/$EXEC_NAME"
+          lipo -info "$APP/$EXEC_NAME" 2>/dev/null || echo "Not a fat binary"
           
           # Read bundle ID from Info.plist
           BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist" 2>/dev/null || echo "com.lychie5.meomobile")
