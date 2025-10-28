@@ -149,19 +149,21 @@ workflows:
           cd ios
           
           echo "=== Building app ==="
-          # Build in Debug mode but force bundling like Release
+          # Build in Release mode but disable optimizations for unsigned compatibility
           xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
-            -configuration Debug \
+            -configuration Release \
             -sdk iphoneos \
             -derivedDataPath ../build \
             -arch arm64 \
             ONLY_ACTIVE_ARCH=NO \
             VALID_ARCHS="arm64" \
             ARCHS="arm64" \
-            SKIP_BUNDLING=NO \
-            FORCE_BUNDLING=YES \
+            GCC_OPTIMIZATION_LEVEL=0 \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            SWIFT_COMPILATION_MODE="singlefile" \
+            DEAD_CODE_STRIPPING=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
@@ -170,8 +172,8 @@ workflows:
           
           cd ..
           
-          # Find .app bundle (Debug build)
-          APP=$(find build/Build/Products/Debug-iphoneos -name "*.app" -type d | head -n 1)
+          # Find .app bundle (Release build)
+          APP=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP" ]; then
             echo "✗ App bundle not found"
