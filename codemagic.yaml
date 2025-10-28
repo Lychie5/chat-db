@@ -146,13 +146,23 @@ workflows:
           echo "✓ Pods installed with signing disabled"
       - name: Bundle JavaScript manually
         script: |
-          # Create production bundle manually since build scripts won't run
-          mkdir -p ios/build
+          # Install React Native CLI tools
+          npm install --save-dev @react-native-community/cli-platform-ios
           
-          npx expo export --platform ios --output-dir ios/build/export
+          # Create production bundle in the correct iOS format
+          mkdir -p ios/main.jsbundle.build
           
-          echo "✓ JS bundle exported"
-          ls -lh ios/build/export/
+          # Bundle with Metro (React Native bundler)
+          node_modules/.bin/react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output ios/main.jsbundle \
+            --assets-dest ios/main.jsbundle.build
+          
+          echo "✓ JS bundle created"
+          ls -lh ios/main.jsbundle
+          ls -la ios/main.jsbundle.build/
       - name: Build unsigned IPA
         script: |
           cd ios
@@ -183,15 +193,24 @@ workflows:
           
           echo "✓ App: $APP"
           
-          # Inject exported bundle into app
+          # Inject JS bundle into app
           echo "=== Injecting JS bundle ==="
-          if [ -d "ios/build/export" ]; then
-            cp -r ios/build/export/* "$APP/"
-            echo "✓ Bundle injected"
-            ls -la "$APP/"
+          if [ -f "ios/main.jsbundle" ]; then
+            cp ios/main.jsbundle "$APP/"
+            echo "✓ main.jsbundle copied"
           else
-            echo "⚠ No export folder found"
+            echo "✗ main.jsbundle not found!"
           fi
+          
+          # Copy assets
+          if [ -d "ios/main.jsbundle.build" ]; then
+            cp -r ios/main.jsbundle.build/* "$APP/" 2>/dev/null || true
+            echo "✓ Assets copied"
+          fi
+          
+          echo "=== App contents after injection ==="
+          ls -lh "$APP/"
+          du -sh "$APP/"
           
           # Ensure Info.plist is valid
           if [ ! -f "$APP/Info.plist" ]; then
