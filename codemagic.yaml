@@ -150,23 +150,47 @@ workflows:
       - name: Build iOS app
         script: |
           cd ios
-          # Build for device without archiving (avoid archive issues)
+          
+          # Get provisioning profile info
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -n 1)
+          TEAM_ID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract TeamIdentifier.0 raw -)
+          
+          # Build for device with proper code signing
           xcodebuild clean build \
             -project "$XCODE_PROJECT.xcodeproj" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
             -destination generic/platform=iOS \
+            -derivedDataPath build \
             CODE_SIGN_IDENTITY="iPhone Developer" \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
             ONLY_ACTIVE_ARCH=NO
           
-          # Create IPA manually from build output
+          # Create properly structured IPA
           cd ..
+          APP_PATH="ios/build/Build/Products/Release-iphoneos/$XCODE_PROJECT.app"
+          
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Error: App bundle not found at $APP_PATH"
+            find ios/build -name "*.app" -type d
+            exit 1
+          fi
+          
+          # Create Payload directory
           mkdir -p Payload
-          cp -r "ios/build/Release-iphoneos/$XCODE_PROJECT.app" Payload/
-          zip -r "$XCODE_PROJECT.ipa" Payload
+          cp -r "$APP_PATH" Payload/
+          
+          # Create IPA with proper compression
+          cd Payload
+          zip -r "../$XCODE_PROJECT.ipa" .
+          cd ..
           rm -rf Payload
+          
+          echo "IPA created: $XCODE_PROJECT.ipa"
+          ls -lh "$XCODE_PROJECT.ipa"
     artifacts:
       - "*.ipa"
       - ios/build/Release-iphoneos/*.app
