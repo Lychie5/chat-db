@@ -168,10 +168,36 @@ workflows:
         script: |
           cd ios
           
-          echo "=== Building iOS app with automatic signing ==="
+          echo "=== Building iOS app with Xcode managed signing ==="
           
-          # Use automatic signing since manual provisioning is failing
-          # This works with free Apple Developer account
+          # Configure the project to use automatic signing with Apple ID
+          # This requires the project to be properly configured
+          ruby <<EOF
+          require 'xcodeproj'
+          
+          project_path = '$XCODE_PROJECT.xcodeproj'
+          project = Xcodeproj::Project.open(project_path)
+          
+          project.targets.each do |target|
+            if target.name == ENV['XCODE_PROJECT']
+              puts "Configuring target: #{target.name}"
+              target.build_configurations.each do |config|
+                config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
+                config.build_settings['DEVELOPMENT_TEAM'] = ''
+                config.build_settings['CODE_SIGN_IDENTITY'] = 'iPhone Developer'
+                config.build_settings.delete('CODE_SIGN_ENTITLEMENTS')
+                config.build_settings.delete('PROVISIONING_PROFILE')
+                config.build_settings.delete('PROVISIONING_PROFILE_SPECIFIER')
+              end
+            end
+          end
+          
+          project.save
+          puts "Project configured for automatic signing"
+          EOF
+          
+          # Build with xcodebuild using -allowProvisioningUpdates
+          # This will prompt Xcode to create a free provisioning profile
           xcodebuild clean build \
             -project "$XCODE_PROJECT.xcodeproj" \
             -scheme "$XCODE_PROJECT" \
@@ -180,14 +206,13 @@ workflows:
             -destination generic/platform=iOS \
             -derivedDataPath build \
             -allowProvisioningUpdates \
-            CODE_SIGN_IDENTITY="iPhone Developer" \
-            CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM="$APPLE_ID" \
-            ONLY_ACTIVE_ARCH=NO || {
-              echo "=== Build failed with automatic signing ==="
-              echo "Trying with code signing disabled for IPA creation..."
+            ONLY_ACTIVE_ARCH=NO \
+            DEVELOPMENT_TEAM="" || {
               
-              # Build without signing (for creating IPA structure)
+              echo "=== Automatic signing failed ==="
+              echo "Building unsigned app for manual signing..."
+              
+              # Build without any signing
               xcodebuild clean build \
                 -project "$XCODE_PROJECT.xcodeproj" \
                 -scheme "$XCODE_PROJECT" \
@@ -212,6 +237,9 @@ workflows:
           fi
           
           echo "Found app bundle: $APP_PATH"
+          
+          # Check if app is signed
+          codesign -dv "$APP_PATH" 2>&1 || echo "App is not signed"
           
           # Create Payload directory (MUST be capital P)
           rm -rf Payload
