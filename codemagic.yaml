@@ -3,6 +3,7 @@ workflows:
     name: React Native Android
     max_build_duration: 120
     instance_type: mac_mini_m1
+    working_directory: chat-db-mobile
     environment:
       android_signing:
         - keystore_reference
@@ -14,17 +15,16 @@ workflows:
     scripts:
       - name: Install npm dependencies
         script: |
-          cd chat-db-mobile
           npm install
       - name: Set Android SDK location
         script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/chat-db-mobile/android/local.properties"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
       - name: Build Android APK
         script: |
-          cd chat-db-mobile/android
+          cd android
           ./gradlew assembleRelease
     artifacts:
-      - chat-db-mobile/android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.apk
     publishing:
       email:
         recipients:
@@ -37,6 +37,7 @@ workflows:
     name: React Native iOS
     max_build_duration: 120
     instance_type: mac_mini_m1
+    working_directory: chat-db-mobile
     environment:
       ios_signing:
         distribution_type: app_store
@@ -52,15 +53,14 @@ workflows:
     scripts:
       - name: Install npm dependencies
         script: |
-          cd chat-db-mobile
           npm install
       - name: Install CocoaPods dependencies
         script: |
-          cd chat-db-mobile/ios
+          cd ios
           pod install
       - name: Build iOS app
         script: |
-          cd chat-db-mobile/ios
+          cd ios
           xcodebuild -workspace "$XCODE_WORKSPACE" \
             -scheme "$XCODE_SCHEME" \
             -sdk iphoneos \
@@ -70,7 +70,7 @@ workflows:
         script: |
           xcodebuild -exportArchive \
             -archivePath $HOME/Library/Developer/Xcode/Archives/ChatDB.xcarchive \
-            -exportOptionsPlist chat-db-mobile/ios/ExportOptions.plist \
+            -exportOptionsPlist ios/ExportOptions.plist \
             -exportPath $CM_BUILD_DIR/build
     artifacts:
       - build/*.ipa
@@ -90,6 +90,7 @@ workflows:
     name: Expo Build
     max_build_duration: 120
     instance_type: mac_mini_m1
+    working_directory: chat-db-mobile
     environment:
       groups:
         - expo
@@ -106,18 +107,15 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          cd chat-db-mobile
           npm install
       - name: Install Expo CLI
         script: |
           npm install -g eas-cli
       - name: Build Android with EAS
         script: |
-          cd chat-db-mobile
           eas build --platform android --non-interactive --no-wait
       - name: Build iOS with EAS
         script: |
-          cd chat-db-mobile
           eas build --platform ios --non-interactive --no-wait
     publishing:
       email:
