@@ -58,8 +58,6 @@ workflows:
       vars:
         EXPO_PUBLIC_API_URL: "https://meo-mv5n.onrender.com"
         BUNDLE_ID: "com.lychie5.meomobile"
-        XCODE_PROJECT: "meomobile.xcodeproj"
-        XCODE_SCHEME: "meomobile"
       node: 18.17.0
       xcode: 15.2
     triggering:
@@ -80,6 +78,16 @@ workflows:
       - name: Prebuild Expo (generate native code)
         script: |
           npx expo prebuild --platform ios --clean
+      - name: Detect Xcode project
+        script: |
+          cd ios
+          XCODE_PROJECT=$(ls -d *.xcodeproj | head -n 1 | sed 's/\.xcodeproj$//')
+          XCODE_WORKSPACE=$(ls -d *.xcworkspace | head -n 1 | sed 's/\.xcworkspace$//')
+          echo "XCODE_PROJECT=$XCODE_PROJECT" >> $CM_ENV
+          echo "XCODE_WORKSPACE=$XCODE_WORKSPACE" >> $CM_ENV
+          echo "Detected project: $XCODE_PROJECT"
+          echo "Detected workspace: $XCODE_WORKSPACE"
+          cd ..
       - name: Set up provisioning profiles
         script: |
           # Initialize keychain for code signing
@@ -99,9 +107,15 @@ workflows:
           xcode-project use-profiles
       - name: Build iOS app
         script: |
-          xcode-project build-ipa \
-            --project "ios/$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME"
+          if [ -n "$XCODE_WORKSPACE" ]; then
+            xcode-project build-ipa \
+              --workspace "ios/$XCODE_WORKSPACE.xcworkspace" \
+              --scheme "$XCODE_PROJECT"
+          else
+            xcode-project build-ipa \
+              --project "ios/$XCODE_PROJECT.xcodeproj" \
+              --scheme "$XCODE_PROJECT"
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
