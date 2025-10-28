@@ -138,20 +138,38 @@ workflows:
           
           # Configure Xcode project to use fetched profiles
           xcode-project use-profiles
+      - name: Set manual code signing
+        script: |
+          # Force manual code signing to avoid automatic entitlements
+          cd ios
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$XCODE_PROJECT.xcodeproj/project.pbxproj"
+          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' "$XCODE_PROJECT.xcodeproj/project.pbxproj"
+          # Remove any reference to entitlements
+          sed -i '' '/CODE_SIGN_ENTITLEMENTS/d' "$XCODE_PROJECT.xcodeproj/project.pbxproj"
+          cd ..
       - name: Build iOS app
         script: |
-          if [ -n "$XCODE_WORKSPACE" ]; then
-            xcode-project build-ipa \
-              --workspace "ios/$XCODE_WORKSPACE.xcworkspace" \
-              --scheme "$XCODE_PROJECT"
-          else
-            xcode-project build-ipa \
-              --project "ios/$XCODE_PROJECT.xcodeproj" \
-              --scheme "$XCODE_PROJECT"
-          fi
+          cd ios
+          # Build for device without archiving (avoid archive issues)
+          xcodebuild clean build \
+            -project "$XCODE_PROJECT.xcodeproj" \
+            -scheme "$XCODE_PROJECT" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination generic/platform=iOS \
+            CODE_SIGN_IDENTITY="iPhone Developer" \
+            CODE_SIGNING_ALLOWED=NO \
+            ONLY_ACTIVE_ARCH=NO
+          
+          # Create IPA manually from build output
+          cd ..
+          mkdir -p Payload
+          cp -r "ios/build/Release-iphoneos/$XCODE_PROJECT.app" Payload/
+          zip -r "$XCODE_PROJECT.ipa" Payload
+          rm -rf Payload
     artifacts:
-      - build/ios/ipa/*.ipa
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+      - "*.ipa"
+      - ios/build/Release-iphoneos/*.app
     publishing:
       email:
         recipients:
