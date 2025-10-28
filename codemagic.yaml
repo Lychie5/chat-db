@@ -110,6 +110,12 @@ workflows:
         script: |
           find ios -name "*.entitlements" -delete
           echo "✓ Removed entitlements"
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios
+          pod install
+          cd ..
+          echo "✓ Pods installed"
       - name: Build unsigned IPA
         script: |
           # Build app without code signing
