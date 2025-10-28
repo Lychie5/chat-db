@@ -99,11 +99,21 @@ workflows:
       - name: Prebuild Expo
         script: |
           npx expo prebuild --platform ios --clean
-      - name: Export and bundle assets
+      - name: Bundle React Native
         script: |
-          # Export app with optimized bundle
-          npx expo export --platform ios --output-dir dist
-          echo "✓ Assets exported to dist/"
+          # Create bundle directory
+          mkdir -p ios/main.jsbundle.tmp
+          
+          # Bundle JavaScript and assets
+          npx react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file node_modules/expo-router/entry.js \
+            --bundle-output ios/main.jsbundle \
+            --assets-dest ios
+          
+          echo "✓ JavaScript bundle created"
+          ls -lh ios/main.jsbundle
       - name: Detect project name
         script: |
           cd ios
