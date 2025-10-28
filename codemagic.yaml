@@ -88,6 +88,30 @@ workflows:
           echo "Detected project: $XCODE_PROJECT"
           echo "Detected workspace: $XCODE_WORKSPACE"
           cd ..
+      - name: Disable Push Notifications capability
+        script: |
+          # Remove Push Notifications from entitlements to avoid provisioning issues
+          ENTITLEMENTS_FILE="ios/$XCODE_PROJECT/$XCODE_PROJECT.entitlements"
+          if [ -f "$ENTITLEMENTS_FILE" ]; then
+            /usr/libexec/PlistBuddy -c "Delete :aps-environment" "$ENTITLEMENTS_FILE" 2>/dev/null || true
+            echo "Removed Push Notifications from entitlements"
+          fi
+          
+          # Disable Push Notifications in Xcode project
+          ruby -e "
+          require 'xcodeproj'
+          project_path = 'ios/$XCODE_PROJECT.xcodeproj'
+          project = Xcodeproj::Project.open(project_path)
+          project.targets.each do |target|
+            if target.name == ENV['XCODE_PROJECT']
+              target.build_configurations.each do |config|
+                config.build_settings.delete('CODE_SIGN_ENTITLEMENTS')
+              end
+            end
+          end
+          project.save
+          puts 'Disabled Push Notifications capability'
+          "
       - name: Set up provisioning profiles
         script: |
           # Initialize keychain for code signing
