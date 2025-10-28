@@ -151,9 +151,30 @@ workflows:
         script: |
           cd ios
           
-          # Get provisioning profile info
-          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -n 1)
-          TEAM_ID=$(security cms -D -i "$PROFILE_PATH" | plutil -extract TeamIdentifier.0 raw -)
+          # Get provisioning profile and extract Team ID properly
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" -print -quit)
+          
+          if [ -z "$PROFILE_PATH" ]; then
+            echo "Error: No provisioning profile found"
+            exit 1
+          fi
+          
+          echo "Using profile: $PROFILE_PATH"
+          
+          # Extract Team ID using security cms and grep
+          TEAM_ID=$(security cms -D -i "$PROFILE_PATH" 2>/dev/null | grep -A 1 TeamIdentifier | grep string | sed -e 's/<string>//' -e 's/<\/string>//' -e 's/^[[:space:]]*//')
+          
+          if [ -z "$TEAM_ID" ]; then
+            echo "Error: Could not extract Team ID from profile"
+            # Try alternative method
+            TEAM_ID=$(security cms -D -i "$PROFILE_PATH" 2>/dev/null | plutil -extract TeamIdentifier.0 raw - 2>/dev/null)
+          fi
+          
+          echo "Team ID: $TEAM_ID"
+          
+          # Get profile UUID
+          PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" 2>/dev/null | grep -A 1 UUID | grep string | sed -e 's/<string>//' -e 's/<\/string>//' -e 's/^[[:space:]]*//')
+          echo "Profile UUID: $PROFILE_UUID"
           
           # Build for device with proper code signing
           xcodebuild clean build \
@@ -166,7 +187,7 @@ workflows:
             CODE_SIGN_IDENTITY="iPhone Developer" \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="$TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
             ONLY_ACTIVE_ARCH=NO
           
           # Create properly structured IPA
@@ -175,6 +196,7 @@ workflows:
           
           if [ ! -d "$APP_PATH" ]; then
             echo "Error: App bundle not found at $APP_PATH"
+            echo "Searching for .app bundles:"
             find ios/build -name "*.app" -type d
             exit 1
           fi
