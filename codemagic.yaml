@@ -118,9 +118,9 @@ workflows:
           echo "✓ Pods installed"
       - name: Build unsigned IPA
         script: |
-          # Build app without code signing
+          # Build app without code signing using workspace (required after pod install)
           xcodebuild clean build \
-            -project "ios/$XCODE_PROJECT.xcodeproj" \
+            -workspace "ios/$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
