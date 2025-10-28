@@ -99,6 +99,11 @@ workflows:
       - name: Prebuild Expo
         script: |
           npx expo prebuild --platform ios --clean
+      - name: Export and bundle assets
+        script: |
+          # Export app with optimized bundle
+          npx expo export --platform ios --output-dir dist
+          echo "✓ Assets exported to dist/"
       - name: Detect project name
         script: |
           cd ios

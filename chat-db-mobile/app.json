@@ -1,28 +1,32 @@
 {
   "expo": {
-    "name": "Meo",
-    "slug": "meo",
+    "name": "meomobile",
+    "slug": "meomobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0a1929"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.meo"
+      "bundleIdentifier": "com.lychie5.meomobile",
+      "icon": "./assets/icon.png"
     },
     "android": {
-      "package": "com.anonymous.Meo",
+      "package": "com.lychie5.meomobile",
       "permissions": [
         "NOTIFICATIONS"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0a1929"
       }
     },
     "plugins": [
