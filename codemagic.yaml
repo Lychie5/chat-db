@@ -149,7 +149,7 @@ workflows:
           cd ios
           
           echo "=== Building app ==="
-          # Build in Debug configuration (more permissive, better for unsigned builds)
+          # Build in Debug mode (less optimized, better for unsigned apps)
           xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
@@ -164,12 +164,11 @@ workflows:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             AD_HOC_CODE_SIGNING_ALLOWED=NO \
-            ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS=NO \
-            ENABLE_BITCODE=NO
+            ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS=NO
           
           cd ..
           
-          # Find .app bundle (Debug configuration)
+          # Find .app bundle (Debug build)
           APP=$(find build/Build/Products/Debug-iphoneos -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP" ]; then
