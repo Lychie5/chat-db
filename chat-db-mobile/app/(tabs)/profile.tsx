@@ -65,6 +65,28 @@ export default function ProfileScreen() {
 
         <View style={styles.menuContainer}>
           <TouchableOpacity 
+            style={[styles.menuItem, styles.menuItemPrimary]}
+            onPress={() => router.push('/settings/edit-profile')}
+          >
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="person" size={24} color="#0ea5ff" />
+            </View>
+            <Text style={[styles.menuText, styles.menuTextPrimary]}>✏️ Modifier le profil</Text>
+            <Ionicons name="chevron-forward" size={20} color="#0ea5ff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/test-notifications')}
+          >
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="flask" size={24} color="#ff6b6b" />
+            </View>
+            <Text style={styles.menuText}>🧪 Test Notifications</Text>
+            <Ionicons name="chevron-forward" size={20} color="#94a3b8" />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
             style={styles.menuItem}
             onPress={() => router.push('/settings/notifications')}
           >
@@ -180,6 +202,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(8, 200, 255, 0.08)',
   },
+  menuItemPrimary: {
+    backgroundColor: 'rgba(14, 165, 255, 0.15)',
+    borderColor: 'rgba(14, 165, 255, 0.3)',
+    borderWidth: 2,
+  },
   menuIconContainer: {
     width: 40,
     height: 40,
@@ -193,6 +220,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#eaf6ff',
+  },
+  menuTextPrimary: {
+    fontWeight: '600',
+    color: '#0ea5ff',
   },
   logoutButton: {
     marginHorizontal: 16,

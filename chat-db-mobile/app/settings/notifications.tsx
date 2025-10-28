@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   Switch,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -20,6 +22,81 @@ export default function NotificationsScreen() {
   const [conversationRequests, setConversationRequests] = useState(true);
   const [vibration, setVibration] = useState(true);
   const [showPreview, setShowPreview] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les préférences au démarrage
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    try {
+      const prefs = await AsyncStorage.getItem('notificationPreferences');
+      if (prefs) {
+        const parsed = JSON.parse(prefs);
+        setPushEnabled(parsed.pushEnabled ?? true);
+        setMessageSound(parsed.messageSound ?? true);
+        setFriendRequests(parsed.friendRequests ?? true);
+        setConversationRequests(parsed.conversationRequests ?? true);
+        setVibration(parsed.vibration ?? true);
+        setShowPreview(parsed.showPreview ?? true);
+      }
+    } catch (error) {
+      console.error('Erreur chargement préférences:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const savePreference = async (key: string, value: boolean) => {
+    try {
+      const currentPrefs = await AsyncStorage.getItem('notificationPreferences');
+      const prefs = currentPrefs ? JSON.parse(currentPrefs) : {};
+      prefs[key] = value;
+      await AsyncStorage.setItem('notificationPreferences', JSON.stringify(prefs));
+    } catch (error) {
+      console.error('Erreur sauvegarde préférence:', error);
+      Alert.alert('Erreur', 'Impossible de sauvegarder les préférences');
+    }
+  };
+
+  const handleTogglePush = async (value: boolean) => {
+    setPushEnabled(value);
+    await savePreference('pushEnabled', value);
+  };
+
+  const handleToggleSound = async (value: boolean) => {
+    setMessageSound(value);
+    await savePreference('messageSound', value);
+  };
+
+  const handleToggleVibration = async (value: boolean) => {
+    setVibration(value);
+    await savePreference('vibration', value);
+  };
+
+  const handleToggleFriendRequests = async (value: boolean) => {
+    setFriendRequests(value);
+    await savePreference('friendRequests', value);
+  };
+
+  const handleToggleConversationRequests = async (value: boolean) => {
+    setConversationRequests(value);
+    await savePreference('conversationRequests', value);
+  };
+
+  const handleTogglePreview = async (value: boolean) => {
+    setShowPreview(value);
+    await savePreference('showPreview', value);
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#eaf6ff' }}>Chargement...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -56,7 +133,7 @@ export default function NotificationsScreen() {
               </View>
               <Switch
                 value={pushEnabled}
-                onValueChange={setPushEnabled}
+                onValueChange={handleTogglePush}
                 trackColor={{ false: '#334155', true: '#0ea5ff80' }}
                 thumbColor={pushEnabled ? '#0ea5ff' : '#94a3b8'}
               />
@@ -74,7 +151,7 @@ export default function NotificationsScreen() {
               </View>
               <Switch
                 value={messageSound}
-                onValueChange={setMessageSound}
+                onValueChange={handleToggleSound}
                 trackColor={{ false: '#334155', true: '#0ea5ff80' }}
                 thumbColor={messageSound ? '#0ea5ff' : '#94a3b8'}
                 disabled={!pushEnabled}
@@ -88,7 +165,7 @@ export default function NotificationsScreen() {
               </View>
               <Switch
                 value={vibration}
-                onValueChange={setVibration}
+                onValueChange={handleToggleVibration}
                 trackColor={{ false: '#334155', true: '#0ea5ff80' }}
                 thumbColor={vibration ? '#0ea5ff' : '#94a3b8'}
                 disabled={!pushEnabled}
@@ -107,7 +184,7 @@ export default function NotificationsScreen() {
               </View>
               <Switch
                 value={friendRequests}
-                onValueChange={setFriendRequests}
+                onValueChange={handleToggleFriendRequests}
                 trackColor={{ false: '#334155', true: '#0ea5ff80' }}
                 thumbColor={friendRequests ? '#0ea5ff' : '#94a3b8'}
                 disabled={!pushEnabled}
@@ -121,7 +198,7 @@ export default function NotificationsScreen() {
               </View>
               <Switch
                 value={conversationRequests}
-                onValueChange={setConversationRequests}
+                onValueChange={handleToggleConversationRequests}
                 trackColor={{ false: '#334155', true: '#0ea5ff80' }}
                 thumbColor={conversationRequests ? '#0ea5ff' : '#94a3b8'}
                 disabled={!pushEnabled}
@@ -145,7 +222,7 @@ export default function NotificationsScreen() {
               </View>
               <Switch
                 value={showPreview}
-                onValueChange={setShowPreview}
+                onValueChange={handleTogglePreview}
                 trackColor={{ false: '#334155', true: '#0ea5ff80' }}
                 thumbColor={showPreview ? '#0ea5ff' : '#94a3b8'}
                 disabled={!pushEnabled}

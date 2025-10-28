@@ -22,33 +22,15 @@ export default function PrivacyScreen() {
   const [profilePhoto, setProfilePhoto] = useState('everyone');
 
   const handleBlockedUsers = () => {
-    Alert.alert('Utilisateurs bloqués', 'Fonctionnalité à venir');
+    router.push('/settings/blocked-users');
   };
 
   const handleDataDownload = () => {
-    Alert.alert(
-      'Télécharger mes données',
-      'Vous recevrez un email avec toutes vos données dans les 48h.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Confirmer', onPress: () => console.log('Data download requested') },
-      ]
-    );
+    router.push('/settings/account-data');
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      'Supprimer mon compte',
-      'Cette action est irréversible. Toutes vos données seront supprimées définitivement.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: () => console.log('Account deletion requested'),
-        },
-      ]
-    );
+    router.push('/settings/account-data');
   };
 
   return (

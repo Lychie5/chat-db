@@ -7,6 +7,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import pkg from "pg";
 import dotenv from "dotenv";
+import passport from "passport";
+import session from "express-session";
+import { configurePassport, setupOAuthRoutes, verifyJWT } from "./auth/oauth-routes.js";
+
 dotenv.config();
 
 const { Pool } = pkg;
@@ -32,7 +36,12 @@ const pool = process.env.DATABASE_URL
     });
 
 pool.connect()
-  .then(() => console.log("✅ Connexion PostgreSQL Render OK"))
+  .then(() => {
+    const dbInfo = process.env.DATABASE_URL 
+      ? 'Render (Production)' 
+      : `Local (${process.env.DB_HOST}:${process.env.DB_PORT})`;
+    console.log(`✅ Connexion PostgreSQL ${dbInfo} OK`);
+  })
   .catch(err => console.error("❌ Erreur PostgreSQL :", err.message));
 
 const app = express();
@@ -45,6 +54,24 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(express.static("public"));
 app.use(cors({ origin: CORS_ORIGIN, methods: ["GET", "POST", "OPTIONS"] }));
+
+// Configuration session pour Passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
+
+// Initialiser Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Configurer les stratégies OAuth
+configurePassport(pool);
+
+// Configurer les routes OAuth
+setupOAuthRoutes(app, pool);
 
 const activeUsers = new Set();
 const userSockets = new Map();
@@ -352,6 +379,13 @@ io.on("connection", (socket) => {
     } catch (err) {
       console.error("❌ Erreur sauvegarde message:", err.message);
     }
+  });
+
+  // Gérer l'indicateur de frappe
+  socket.on("typing", ({ conversationId, pseudo, isTyping }) => {
+    const room = `conv-${conversationId}`;
+    // Diffuser à tous SAUF l'émetteur
+    socket.to(room).emit("user typing", { pseudo, isTyping });
   });
 
   socket.on("disconnect", () => {

@@ -29,7 +29,7 @@ export const api = {
     }
   },
 
-  async post(endpoint: string, data: any) {
+  async post(endpoint: string, data?: any) {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -37,13 +37,22 @@ export const api = {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: data ? JSON.stringify(data) : undefined,
       });
       
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`API POST Error ${response.status} on ${endpoint}:`, errorText);
         throw new Error(`${response.status}: ${errorText}`);
+      }
+      
+      // Vérifier si la réponse a du contenu avant de parser JSON
+      const contentType = response.headers.get('content-type');
+      const contentLength = response.headers.get('content-length');
+      
+      if (contentLength === '0' || !contentType?.includes('application/json')) {
+        // Pas de corps JSON, retourner success
+        return { ok: true };
       }
       
       const responseData = await response.json();

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  AppState,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { api, API_CONFIG } from '../../config/api';
 import io from 'socket.io-client';
+import { showMessageNotification } from '../../services/notificationService';
 
 interface Message {
   id: number;
@@ -29,9 +31,46 @@ export default function ChatScreen() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentUser, setCurrentUser] = useState('');
+  const currentUserRef = useRef(''); // Ref pour accéder au currentUser dans les callbacks
   const [messageText, setMessageText] = useState('');
   const [socket, setSocket] = useState<any>(null);
   const flatListRef = useRef<FlatList>(null);
+  const [isAppInForeground, setIsAppInForeground] = useState(true);
+  const isChatScreenActive = useRef(true); // Track if THIS chat screen is active
+  const [isOtherUserTyping, setIsOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Mark this chat as active when mounted
+    isChatScreenActive.current = true;
+    console.log('💬 Chat screen mounted, active:', isChatScreenActive.current);
+
+    return () => {
+      // Mark as inactive when unmounted
+      isChatScreenActive.current = false;
+      console.log('💬 Chat screen unmounted, active:', isChatScreenActive.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Détecter si l'app est en foreground ou background
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      const wasInForeground = isAppInForeground;
+      const isNowInForeground = nextAppState === 'active';
+      
+      setIsAppInForeground(isNowInForeground);
+      
+      console.log('📱 AppState changed:', {
+        from: wasInForeground ? 'foreground' : 'background',
+        to: isNowInForeground ? 'foreground' : 'background',
+        state: nextAppState
+      });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isAppInForeground]);
 
   useEffect(() => {
     loadUser();
@@ -45,7 +84,11 @@ export default function ChatScreen() {
 
   const loadUser = async () => {
     const user = await AsyncStorage.getItem('currentUser');
-    if (user) setCurrentUser(user);
+    if (user) {
+      setCurrentUser(user);
+      currentUserRef.current = user; // Mettre à jour la ref aussi
+      console.log('👤 Current user loaded:', user);
+    }
   };
 
   const loadMessages = async () => {
@@ -69,7 +112,7 @@ export default function ChatScreen() {
     });
 
     newSocket.on('chat message', (msg: any) => {
-      console.log('Received message:', msg);
+      console.log('📨 Received message:', msg);
       // Le message est déjà dans la room, on l'ajoute directement
       const messageToAdd: Message = {
         id: msg.id || Date.now(),
@@ -77,6 +120,27 @@ export default function ChatScreen() {
         body: msg.text || msg.body,
         created_at: msg.created_at || new Date().toISOString(),
       };
+      
+      const appState = AppState.currentState;
+      const shouldNotify = 
+        messageToAdd.sender !== currentUserRef.current && // Pas moi
+        (appState !== 'active' || !isChatScreenActive.current); // App en arrière-plan OU pas sur ce chat
+      
+      console.log('📊 Notification check:', {
+        messageSender: messageToAdd.sender,
+        currentUser: currentUserRef.current,
+        appState: appState,
+        isChatActive: isChatScreenActive.current,
+        shouldNotify: shouldNotify
+      });
+      
+      // Afficher une notification si nécessaire
+      if (shouldNotify) {
+        console.log('🔔 Sending notification for message from', messageToAdd.sender);
+        showMessageNotification(messageToAdd.sender, messageToAdd.body, parseInt(id as string));
+      } else {
+        console.log('⏭️ Skipping notification (user is viewing this chat)');
+      }
       
       setMessages(prev => {
         // Éviter les doublons
@@ -89,6 +153,23 @@ export default function ChatScreen() {
         return [...prev, messageToAdd];
       });
       setTimeout(() => scrollToBottom(), 100);
+    });
+
+    newSocket.on('user typing', (data: { pseudo: string; isTyping: boolean }) => {
+      console.log('👀 User typing event:', data);
+      if (data.pseudo !== currentUserRef.current) {
+        setIsOtherUserTyping(data.isTyping);
+        
+        // Auto-hide typing indicator after 3 seconds
+        if (data.isTyping) {
+          if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+          }
+          typingTimeoutRef.current = setTimeout(() => {
+            setIsOtherUserTyping(false);
+          }, 3000);
+        }
+      }
     });
 
     newSocket.on('conversation history', (payload: any) => {
@@ -112,11 +193,41 @@ export default function ChatScreen() {
     flatListRef.current?.scrollToEnd({ animated: true });
   };
 
+  const handleTextChange = (text: string) => {
+    setMessageText(text);
+    
+    // Envoyer l'événement de frappe
+    if (socket && socket.connected && currentUser) {
+      if (text.length > 0) {
+        socket.emit('typing', {
+          conversationId: parseInt(id),
+          pseudo: currentUser,
+          isTyping: true,
+        });
+      } else {
+        socket.emit('typing', {
+          conversationId: parseInt(id),
+          pseudo: currentUser,
+          isTyping: false,
+        });
+      }
+    }
+  };
+
   const sendMessage = async () => {
     if (!messageText.trim() || !currentUser) return;
 
     const msgText = messageText.trim();
     setMessageText('');
+    
+    // Arrêter l'indicateur de frappe
+    if (socket && socket.connected && currentUser) {
+      socket.emit('typing', {
+        conversationId: parseInt(id),
+        pseudo: currentUser,
+        isTyping: false,
+      });
+    }
 
     try {
       const messageData = {
@@ -205,6 +316,13 @@ export default function ChatScreen() {
           contentContainerStyle={styles.messagesList}
           onContentSizeChange={() => scrollToBottom()}
         />
+        
+        {/* Typing Indicator */}
+        {isOtherUserTyping && (
+          <View style={styles.typingContainer}>
+            <Text style={styles.typingText}>{username} est en train d'écrire...</Text>
+          </View>
+        )}
       </LinearGradient>
 
       {/* Input */}
@@ -219,7 +337,7 @@ export default function ChatScreen() {
           <TextInput
             style={styles.input}
             value={messageText}
-            onChangeText={setMessageText}
+            onChangeText={handleTextChange}
             placeholder="Écrivez un message..."
             placeholderTextColor="#64748b"
             multiline
@@ -354,5 +472,14 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: 'rgba(100, 116, 139, 0.1)',
     borderColor: 'rgba(100, 116, 139, 0.2)',
+  },
+  typingContainer: {
+    padding: 12,
+    paddingBottom: 0,
+  },
+  typingText: {
+    fontSize: 13,
+    color: '#94a3b8',
+    fontStyle: 'italic',
   },
 });

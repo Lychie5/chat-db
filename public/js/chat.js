@@ -1,4 +1,4 @@
-// === js/chat.js ===
+cd // === js/chat.js ===
 
 const socket = window.socket
 

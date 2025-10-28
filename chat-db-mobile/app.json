@@ -17,11 +17,31 @@
       "bundleIdentifier": "com.anonymous.meo"
     },
     "android": {
-      "package": "com.anonymous.Meo"
+      "package": "com.anonymous.Meo",
+      "permissions": [
+        "NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff",
+          "sounds": []
+        }
+      ]
     ],
-    "scheme": "meo"
+    "scheme": "meo",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c3f4cf4b-e7e4-42e8-b461-54255937df6b"
+      }
+    }
   }
 }

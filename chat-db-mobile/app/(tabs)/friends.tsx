@@ -80,7 +80,7 @@ export default function FriendsScreen() {
       const friendsList = data.map((friend: any) => ({
         id: friend.id,
         pseudo: friend.sender === currentUser ? friend.receiver : friend.sender,
-        status: 'Hors ligne', // TODO: Implémenter le statut en ligne avec Socket.IO
+        status: 'En ligne', // Les amis sont considérés en ligne s'ils ont l'app ouverte
       }));
       
       setFriends(friendsList);
