@@ -99,12 +99,6 @@ workflows:
       - name: Prebuild Expo
         script: |
           npx expo prebuild --platform ios --clean
-      - name: Export production bundle
-        script: |
-          # Generate optimized production bundle
-          npx expo export --platform ios
-          echo "✓ Bundle exported to dist/"
-          ls -la dist/
       - name: Detect project name
         script: |
           cd ios
@@ -141,39 +135,24 @@ workflows:
         script: |
           cd ios
           
-          echo "=== Building app ==="
-          # Build without signing
-          xcodebuild clean build \
+          echo "=== Building app with ad-hoc signing ==="
+          # Build with ad-hoc signing to execute all scripts
+          xcodebuild clean archive \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath ../build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            -archivePath ../build/$XCODE_PROJECT.xcarchive \
+            -allowProvisioningUpdates \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            DEVELOPMENT_TEAM=""
           
           cd ..
           
-          # Find .app bundle
-          APP=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
-          
-          if [ -z "$APP" ]; then
-            echo "✗ App bundle not found"
-            exit 1
-          fi
-          
-          echo "✓ App: $APP"
-          
-          # Inject Expo bundle into app
-          echo "=== Injecting Expo bundle ==="
-          if [ -d "dist" ]; then
-            cp -r dist/* "$APP/"
-            echo "✓ Bundle injected"
-            ls -la "$APP/"
-          else
-            echo "⚠ No dist/ folder found"
-          fi
-          APP=$(find build -name "*.app" -type d | head -n 1)
+          # Extract .app from archive
+          APP=$(find build/$XCODE_PROJECT.xcarchive/Products/Applications -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP" ]; then
             echo "✗ App bundle not found"
