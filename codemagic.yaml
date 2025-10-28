@@ -135,24 +135,23 @@ workflows:
         script: |
           cd ios
           
-          echo "=== Building app with ad-hoc signing ==="
-          # Build with ad-hoc signing to execute all scripts
-          xcodebuild clean archive \
+          echo "=== Building app ==="
+          # Build with scripts enabled but no actual signing
+          xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
-            -archivePath ../build/$XCODE_PROJECT.xcarchive \
-            -allowProvisioningUpdates \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGN_STYLE=Manual \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            DEVELOPMENT_TEAM=""
+            -derivedDataPath ../build \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES
           
           cd ..
           
-          # Extract .app from archive
-          APP=$(find build/$XCODE_PROJECT.xcarchive/Products/Applications -name "*.app" -type d | head -n 1)
+          # Find .app bundle
+          APP=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP" ]; then
             echo "✗ App bundle not found"
