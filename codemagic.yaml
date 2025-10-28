@@ -160,7 +160,8 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            AD_HOC_CODE_SIGNING_ALLOWED=NO
+            AD_HOC_CODE_SIGNING_ALLOWED=NO \
+            ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS=NO
           
           cd ..
           
@@ -182,6 +183,15 @@ workflows:
           if [ -f "$APP/main.jsbundle" ]; then
             BUNDLE_SIZE=$(ls -lh "$APP/main.jsbundle" | awk '{print $5}')
             echo "✓ Bundle in app: $BUNDLE_SIZE"
+            
+            # Verify bundle is not empty and valid
+            if [ -s "$APP/main.jsbundle" ]; then
+              echo "✓ Bundle is not empty"
+              head -c 100 "$APP/main.jsbundle" | od -c | head -5
+            else
+              echo "✗ Bundle is empty!"
+              exit 1
+            fi
           else
             echo "✗ Bundle NOT in app!"
             exit 1
@@ -192,6 +202,18 @@ workflows:
             echo "✗ Missing Info.plist"
             exit 1
           fi
+          
+          echo "=== Info.plist details ==="
+          /usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print CFBundleName" "$APP/Info.plist"
+          /usr/libexec/PlistBuddy -c "Print CFBundleDisplayName" "$APP/Info.plist" 2>/dev/null || echo "No display name"
+          
+          # Fix bundle display name
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName meomobile" "$APP/Info.plist" 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string meomobile" "$APP/Info.plist"
+          
+          echo "✓ Info.plist configured"
           
           # Read bundle ID from Info.plist
           BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist" 2>/dev/null || echo "com.lychie5.meomobile")
