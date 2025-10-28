@@ -99,6 +99,12 @@ workflows:
       - name: Prebuild Expo
         script: |
           npx expo prebuild --platform ios --clean
+      - name: Export production bundle
+        script: |
+          # Generate optimized production bundle
+          npx expo export --platform ios
+          echo "✓ Bundle exported to dist/"
+          ls -la dist/
       - name: Detect project name
         script: |
           cd ios
@@ -135,28 +141,38 @@ workflows:
         script: |
           cd ios
           
-          echo "=== Current directory: $(pwd) ==="
-          echo "=== XCODE_PROJECT: $XCODE_PROJECT ==="
-          echo "=== Workspace files: ==="
-          ls -la *.xcworkspace
-          
-          # Build with archive to properly bundle assets
-          xcodebuild clean archive \
+          echo "=== Building app ==="
+          # Build without signing
+          xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
-            -archivePath ../build/$XCODE_PROJECT.xcarchive \
-            CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM="" \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            -derivedDataPath ../build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
           
           cd ..
           
-          # Extract .app from archive
-          APP=$(find build/$XCODE_PROJECT.xcarchive -name "*.app" -type d | head -n 1)
+          # Find .app bundle
+          APP=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
+          
+          if [ -z "$APP" ]; then
+            echo "✗ App bundle not found"
+            exit 1
+          fi
+          
+          echo "✓ App: $APP"
+          
+          # Inject Expo bundle into app
+          echo "=== Injecting Expo bundle ==="
+          if [ -d "dist" ]; then
+            cp -r dist/* "$APP/"
+            echo "✓ Bundle injected"
+            ls -la "$APP/"
+          else
+            echo "⚠ No dist/ folder found"
+          fi
           APP=$(find build -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP" ]; then
