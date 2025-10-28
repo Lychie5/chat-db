@@ -219,6 +219,27 @@ workflows:
           BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist" 2>/dev/null || echo "com.lychie5.meomobile")
           echo "✓ Bundle ID: $BUNDLE"
           
+          # Strip any existing code signature to allow AltStore to re-sign
+          echo "=== Removing code signature ==="
+          rm -rf "$APP/_CodeSignature" 2>/dev/null || true
+          rm -f "$APP/embedded.mobileprovision" 2>/dev/null || true
+          
+          # Strip signatures from all dylibs and frameworks
+          find "$APP/Frameworks" -name "*.dylib" -o -name "*.framework" 2>/dev/null | while read file; do
+            if [ -f "$file" ]; then
+              codesign --remove-signature "$file" 2>/dev/null || true
+            fi
+          done
+          
+          # Strip signature from main executable
+          EXEC_NAME=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP/Info.plist")
+          if [ -f "$APP/$EXEC_NAME" ]; then
+            codesign --remove-signature "$APP/$EXEC_NAME" 2>/dev/null || true
+            echo "✓ Signature removed from $EXEC_NAME"
+          fi
+          
+          echo "✓ All signatures removed"
+          
           # Create IPA structure
           rm -rf Payload
           mkdir Payload
