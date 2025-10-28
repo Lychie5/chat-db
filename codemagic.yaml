@@ -123,20 +123,35 @@ workflows:
           echo "Removed all entitlements files"
       - name: Set up provisioning profiles
         script: |
+          echo "=== Setting up code signing ==="
+          echo "Bundle ID: $BUNDLE_ID"
+          echo "Apple ID: $APPLE_ID"
+          
           # Initialize keychain for code signing
           keychain initialize
           
           # Fetch or create provisioning profile using Apple ID
+          echo "Fetching signing files..."
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_DEVELOPMENT \
             --create \
             --apple-id "$APPLE_ID" \
-            --password "$APP_SPECIFIC_PASSWORD"
+            --password "$APP_SPECIFIC_PASSWORD" || {
+              echo "Error: Failed to fetch signing files"
+              echo "Make sure APPLE_ID and APP_SPECIFIC_PASSWORD are set correctly"
+              exit 1
+            }
           
           # Add certificates to keychain
+          echo "Adding certificates to keychain..."
           keychain add-certificates
           
+          # List provisioning profiles
+          echo "=== Provisioning profiles installed ==="
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
+          
           # Configure Xcode project to use fetched profiles
+          echo "Configuring Xcode project..."
           xcode-project use-profiles
       - name: Set manual code signing
         script: |
