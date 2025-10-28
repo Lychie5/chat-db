@@ -75,6 +75,34 @@ workflows:
         script: |
           npm install -g @expo/ngrok@^4.1.0
           npm install -g expo-cli
+      - name: Remove Push Notifications from app.json
+        script: |
+          # Remove expo-notifications plugin to avoid Push Notifications capability
+          node -e "
+          const fs = require('fs');
+          const appJson = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+          
+          // Remove notification-related plugins
+          if (appJson.expo && appJson.expo.plugins) {
+            appJson.expo.plugins = appJson.expo.plugins.filter(plugin => {
+              if (typeof plugin === 'string') {
+                return !plugin.includes('notification');
+              }
+              if (Array.isArray(plugin)) {
+                return !plugin[0].includes('notification');
+              }
+              return true;
+            });
+          }
+          
+          // Remove ios.infoPlist notification permissions
+          if (appJson.expo && appJson.expo.ios && appJson.expo.ios.infoPlist) {
+            delete appJson.expo.ios.infoPlist['UIBackgroundModes'];
+          }
+          
+          fs.writeFileSync('app.json', JSON.stringify(appJson, null, 2));
+          console.log('Removed Push Notifications from app.json');
+          "
       - name: Prebuild Expo (generate native code)
         script: |
           npx expo prebuild --platform ios --clean
@@ -88,30 +116,11 @@ workflows:
           echo "Detected project: $XCODE_PROJECT"
           echo "Detected workspace: $XCODE_WORKSPACE"
           cd ..
-      - name: Disable Push Notifications capability
+      - name: Remove Push Notifications entitlements
         script: |
-          # Remove Push Notifications from entitlements to avoid provisioning issues
-          ENTITLEMENTS_FILE="ios/$XCODE_PROJECT/$XCODE_PROJECT.entitlements"
-          if [ -f "$ENTITLEMENTS_FILE" ]; then
-            /usr/libexec/PlistBuddy -c "Delete :aps-environment" "$ENTITLEMENTS_FILE" 2>/dev/null || true
-            echo "Removed Push Notifications from entitlements"
-          fi
-          
-          # Disable Push Notifications in Xcode project
-          ruby -e "
-          require 'xcodeproj'
-          project_path = 'ios/$XCODE_PROJECT.xcodeproj'
-          project = Xcodeproj::Project.open(project_path)
-          project.targets.each do |target|
-            if target.name == ENV['XCODE_PROJECT']
-              target.build_configurations.each do |config|
-                config.build_settings.delete('CODE_SIGN_ENTITLEMENTS')
-              end
-            end
-          end
-          project.save
-          puts 'Disabled Push Notifications capability'
-          "
+          # Remove any entitlements file to avoid Push Notifications requirement
+          find ios -name "*.entitlements" -type f -delete
+          echo "Removed all entitlements files"
       - name: Set up provisioning profiles
         script: |
           # Initialize keychain for code signing
