@@ -144,12 +144,21 @@ workflows:
           ls -la
           cd ..
           echo "✓ Pods installed with signing disabled"
+      - name: Bundle JavaScript manually
+        script: |
+          # Create production bundle manually since build scripts won't run
+          mkdir -p ios/build
+          
+          npx expo export --platform ios --output-dir ios/build/export
+          
+          echo "✓ JS bundle exported"
+          ls -lh ios/build/export/
       - name: Build unsigned IPA
         script: |
           cd ios
           
           echo "=== Building app ==="
-          # Build with scripts enabled but no actual signing
+          # Build with all signing disabled at build command level
           xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
@@ -159,7 +168,8 @@ workflows:
             ONLY_ACTIVE_ARCH=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=YES
+            CODE_SIGNING_ALLOWED=NO \
+            AD_HOC_CODE_SIGNING_ALLOWED=NO
           
           cd ..
           
@@ -172,6 +182,16 @@ workflows:
           fi
           
           echo "✓ App: $APP"
+          
+          # Inject exported bundle into app
+          echo "=== Injecting JS bundle ==="
+          if [ -d "ios/build/export" ]; then
+            cp -r ios/build/export/* "$APP/"
+            echo "✓ Bundle injected"
+            ls -la "$APP/"
+          else
+            echo "⚠ No export folder found"
+          fi
           
           # Ensure Info.plist is valid
           if [ ! -f "$APP/Info.plist" ]; then
