@@ -59,7 +59,7 @@ workflows:
         EXPO_PUBLIC_API_URL: "https://meo-mv5n.onrender.com"
         BUNDLE_ID: "com.lychie5.meomobile"
       node: 18.17.0
-      xcode: 15.2
+      xcode: 16.1
     triggering:
       events:
         - push
