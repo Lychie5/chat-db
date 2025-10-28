@@ -149,11 +149,11 @@ workflows:
           cd ios
           
           echo "=== Building app ==="
-          # Build with all signing disabled - force ARM64 architecture
+          # Build in Debug configuration (more permissive, better for unsigned builds)
           xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
-            -configuration Release \
+            -configuration Debug \
             -sdk iphoneos \
             -derivedDataPath ../build \
             -arch arm64 \
@@ -164,12 +164,13 @@ workflows:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             AD_HOC_CODE_SIGNING_ALLOWED=NO \
-            ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS=NO
+            ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS=NO \
+            ENABLE_BITCODE=NO
           
           cd ..
           
-          # Find .app bundle
-          APP=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
+          # Find .app bundle (Debug configuration)
+          APP=$(find build/Build/Products/Debug-iphoneos -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP" ]; then
             echo "✗ App bundle not found"
