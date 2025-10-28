@@ -110,13 +110,25 @@ workflows:
         script: |
           find ios -name "*.entitlements" -delete
           echo "✓ Removed entitlements"
+      - name: Check Podfile
+        script: |
+          cd ios
+          echo "=== Checking Podfile ==="
+          if [ -f "Podfile" ]; then
+            echo "✓ Podfile exists"
+            cat Podfile
+          else
+            echo "✗ Podfile NOT found!"
+          fi
+          cd ..
       - name: Install CocoaPods dependencies
         script: |
           cd ios
           echo "=== Installing pods ==="
           pod install
           echo "=== Checking workspace ==="
-          ls -la *.xcworkspace
+          ls -la *.xcworkspace || echo "✗ No workspace found"
+          ls -la
           cd ..
           echo "✓ Pods installed"
       - name: Build unsigned IPA
