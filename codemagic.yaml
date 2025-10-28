@@ -48,7 +48,7 @@ workflows:
           failure: true
 
   expo-ios-build:
-    name: Expo iOS Build (Development)
+    name: Expo iOS Build for AltStore
     max_build_duration: 120
     instance_type: mac_mini_m1
     working_directory: chat-db-mobile
@@ -71,199 +71,101 @@ workflows:
       - name: Install dependencies
         script: |
           npm install --legacy-peer-deps
-      - name: Install Expo CLI
+      - name: Install Expo CLI and fastlane
         script: |
           npm install -g @expo/ngrok@^4.1.0
           npm install -g expo-cli
-      - name: Remove Push Notifications from app.json
+          gem install fastlane
+      - name: Remove Push Notifications
         script: |
-          # Remove expo-notifications plugin to avoid Push Notifications capability
-          node -e "
+          node <<'EOF'
           const fs = require('fs');
           const appJson = JSON.parse(fs.readFileSync('app.json', 'utf8'));
           
-          // Remove notification-related plugins
-          if (appJson.expo && appJson.expo.plugins) {
+          if (appJson.expo?.plugins) {
             appJson.expo.plugins = appJson.expo.plugins.filter(plugin => {
-              if (typeof plugin === 'string') {
-                return !plugin.includes('notification');
-              }
-              if (Array.isArray(plugin)) {
-                return !plugin[0].includes('notification');
-              }
-              return true;
+              const name = typeof plugin === 'string' ? plugin : plugin[0];
+              return !name.includes('notification');
             });
           }
           
-          // Remove ios.infoPlist notification permissions
-          if (appJson.expo && appJson.expo.ios && appJson.expo.ios.infoPlist) {
-            delete appJson.expo.ios.infoPlist['UIBackgroundModes'];
+          if (appJson.expo?.ios?.infoPlist) {
+            delete appJson.expo.ios.infoPlist.UIBackgroundModes;
           }
           
           fs.writeFileSync('app.json', JSON.stringify(appJson, null, 2));
-          console.log('Removed Push Notifications from app.json');
-          "
-      - name: Prebuild Expo (generate native code)
+          console.log('✓ Cleaned app.json');
+          EOF
+      - name: Prebuild Expo
         script: |
           npx expo prebuild --platform ios --clean
-      - name: Detect Xcode project
+      - name: Detect project name
         script: |
           cd ios
-          XCODE_PROJECT=$(ls -d *.xcodeproj | head -n 1 | sed 's/\.xcodeproj$//')
-          XCODE_WORKSPACE=$(ls -d *.xcworkspace | head -n 1 | sed 's/\.xcworkspace$//')
-          echo "XCODE_PROJECT=$XCODE_PROJECT" >> $CM_ENV
-          echo "XCODE_WORKSPACE=$XCODE_WORKSPACE" >> $CM_ENV
-          echo "Detected project: $XCODE_PROJECT"
-          echo "Detected workspace: $XCODE_WORKSPACE"
+          PROJECT=$(ls -d *.xcodeproj | head -n 1 | sed 's/\.xcodeproj$//')
+          echo "XCODE_PROJECT=$PROJECT" >> $CM_ENV
+          echo "✓ Project: $PROJECT"
           cd ..
-      - name: Remove Push Notifications entitlements
+      - name: Clean entitlements
         script: |
-          # Remove any entitlements file to avoid Push Notifications requirement
-          find ios -name "*.entitlements" -type f -delete
-          echo "Removed all entitlements files"
-      - name: Set up provisioning profiles
+          find ios -name "*.entitlements" -delete
+          echo "✓ Removed entitlements"
+      - name: Build unsigned IPA
         script: |
-          echo "=== Setting up code signing ==="
-          echo "Bundle ID: $BUNDLE_ID"
-          echo "Apple ID: $APPLE_ID"
-          
-          # Set environment variables for app-store-connect CLI
-          export APP_STORE_CONNECT_PRIVATE_KEY="$APPLE_ID"
-          export APP_STORE_CONNECT_KEY_IDENTIFIER="$APP_SPECIFIC_PASSWORD"
-          
-          # Initialize keychain for code signing
-          keychain initialize
-          
-          # Fetch or create provisioning profile
-          echo "Fetching signing files for $BUNDLE_ID..."
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_DEVELOPMENT \
-            --create || {
-              echo "=== Error: Failed to fetch signing files ==="
-              echo "This is expected with free Apple Developer account"
-              echo "We'll create a manual provisioning profile instead"
-            }
-          
-          # List provisioning profiles
-          echo "=== Provisioning profiles in keychain ==="
-          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/ 2>/dev/null || echo "No profiles found yet"
-          
-          # Add any certificates to keychain
-          echo "Adding certificates to keychain..."
-          keychain add-certificates 2>/dev/null || echo "No certificates to add"
-          
-          # Configure Xcode project to use fetched profiles
-          echo "Configuring Xcode project..."
-          xcode-project use-profiles 2>/dev/null || echo "No profiles to configure"
-      - name: Set manual code signing
-        script: |
-          # Force manual code signing to avoid automatic entitlements
-          cd ios
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$XCODE_PROJECT.xcodeproj/project.pbxproj"
-          sed -i '' 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' "$XCODE_PROJECT.xcodeproj/project.pbxproj"
-          # Remove any reference to entitlements
-          sed -i '' '/CODE_SIGN_ENTITLEMENTS/d' "$XCODE_PROJECT.xcodeproj/project.pbxproj"
-          cd ..
-      - name: Build iOS app
-        script: |
-          cd ios
-          
-          echo "=== Building iOS app with Xcode managed signing ==="
-          
-          # Configure the project to use automatic signing with Apple ID
-          # This requires the project to be properly configured
-          ruby <<EOF
-          require 'xcodeproj'
-          
-          project_path = '$XCODE_PROJECT.xcodeproj'
-          project = Xcodeproj::Project.open(project_path)
-          
-          project.targets.each do |target|
-            if target.name == ENV['XCODE_PROJECT']
-              puts "Configuring target: #{target.name}"
-              target.build_configurations.each do |config|
-                config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
-                config.build_settings['DEVELOPMENT_TEAM'] = ''
-                config.build_settings['CODE_SIGN_IDENTITY'] = 'iPhone Developer'
-                config.build_settings.delete('CODE_SIGN_ENTITLEMENTS')
-                config.build_settings.delete('PROVISIONING_PROFILE')
-                config.build_settings.delete('PROVISIONING_PROFILE_SPECIFIER')
-              end
-            end
-          end
-          
-          project.save
-          puts "Project configured for automatic signing"
-          EOF
-          
-          # Build with xcodebuild using -allowProvisioningUpdates
-          # This will prompt Xcode to create a free provisioning profile
+          # Build app without code signing
           xcodebuild clean build \
-            -project "$XCODE_PROJECT.xcodeproj" \
+            -project "ios/$XCODE_PROJECT.xcodeproj" \
             -scheme "$XCODE_PROJECT" \
             -configuration Release \
             -sdk iphoneos \
-            -destination generic/platform=iOS \
             -derivedDataPath build \
-            -allowProvisioningUpdates \
-            ONLY_ACTIVE_ARCH=NO \
-            DEVELOPMENT_TEAM="" || {
-              
-              echo "=== Automatic signing failed ==="
-              echo "Building unsigned app for manual signing..."
-              
-              # Build without any signing
-              xcodebuild clean build \
-                -project "$XCODE_PROJECT.xcodeproj" \
-                -scheme "$XCODE_PROJECT" \
-                -configuration Release \
-                -sdk iphoneos \
-                -destination generic/platform=iOS \
-                -derivedDataPath build \
-                CODE_SIGNING_ALLOWED=NO \
-                CODE_SIGNING_REQUIRED=NO \
-                ONLY_ACTIVE_ARCH=NO
-            }
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
           
-          # Create properly structured IPA
-          cd ..
-          APP_PATH="ios/build/Build/Products/Release-iphoneos/$XCODE_PROJECT.app"
+          # Find .app bundle
+          APP=$(find build -name "*.app" -type d | head -n 1)
           
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: App bundle not found at $APP_PATH"
-            echo "Searching for .app bundles:"
-            find ios/build -name "*.app" -type d
+          if [ -z "$APP" ]; then
+            echo "✗ App bundle not found"
             exit 1
           fi
           
-          echo "Found app bundle: $APP_PATH"
+          echo "✓ App: $APP"
           
-          # Check if app is signed
-          codesign -dv "$APP_PATH" 2>&1 || echo "App is not signed"
+          # Ensure Info.plist is valid
+          if [ ! -f "$APP/Info.plist" ]; then
+            echo "✗ Missing Info.plist"
+            exit 1
+          fi
           
-          # Create Payload directory (MUST be capital P)
+          # Read bundle ID from Info.plist
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist" 2>/dev/null || echo "com.lychie5.meomobile")
+          echo "✓ Bundle ID: $BUNDLE"
+          
+          # Create IPA structure
           rm -rf Payload
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
+          mkdir Payload
+          cp -R "$APP" Payload/
           
-          # Verify structure
-          echo "=== IPA Structure ==="
-          ls -la Payload/
+          # Create IPA (use -r for recursive, -y for symlinks)
+          zip -qr meomobile.ipa Payload
           
-          # Create IPA with proper structure
-          # Important: zip from current directory, not from inside Payload
-          zip -r -q "$XCODE_PROJECT.ipa" Payload
+          # Move to artifacts
+          mv meomobile.ipa build/
           rm -rf Payload
           
-          echo "IPA created successfully: $XCODE_PROJECT.ipa"
-          ls -lh "$XCODE_PROJECT.ipa"
-          
-          # Verify IPA contents
-          echo "=== IPA Contents ==="
-          unzip -l "$XCODE_PROJECT.ipa" | head -20
+          # Validate IPA
+          if [ -f "build/meomobile.ipa" ]; then
+            echo "✓ IPA created: $(ls -lh build/meomobile.ipa | awk '{print $5}')"
+            
+            # Quick check
+            unzip -l build/meomobile.ipa | grep -q "Payload/.*\.app/Info.plist" && echo "✓ Valid structure" || echo "✗ Invalid structure"
+          else
+            echo "✗ IPA creation failed"
+            exit 1
+          fi
     artifacts:
-      - "*.ipa"
-      - ios/build/Release-iphoneos/*.app
+      - build/meomobile.ipa
     publishing:
       email:
         recipients:
