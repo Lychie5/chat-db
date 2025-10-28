@@ -124,13 +124,26 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd ios
+          
+          # Add post_install hook to disable code signing for pods (single line)
+          echo "" >> Podfile
+          echo "post_install do |installer|" >> Podfile
+          echo "  installer.pods_project.targets.each do |target|" >> Podfile
+          echo "    target.build_configurations.each do |config|" >> Podfile
+          echo "      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'" >> Podfile
+          echo "      config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'" >> Podfile
+          echo "      config.build_settings['CODE_SIGN_IDENTITY'] = ''" >> Podfile
+          echo "    end" >> Podfile
+          echo "  end" >> Podfile
+          echo "end" >> Podfile
+          
           echo "=== Installing pods ==="
           pod install
           echo "=== Checking workspace ==="
           ls -la *.xcworkspace || echo "✗ No workspace found"
           ls -la
           cd ..
-          echo "✓ Pods installed"
+          echo "✓ Pods installed with signing disabled"
       - name: Build unsigned IPA
         script: |
           cd ios
