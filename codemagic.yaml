@@ -53,13 +53,13 @@ workflows:
     instance_type: mac_mini_m1
     working_directory: chat-db-mobile
     environment:
-      ios_signing:
-        distribution_type: development
-        bundle_identifier: com.lychie5.meomobile
       groups:
-        - expo_credentials
+        - apple_credentials
       vars:
         EXPO_PUBLIC_API_URL: "https://meo-mv5n.onrender.com"
+        BUNDLE_ID: "com.lychie5.meomobile"
+        XCODE_PROJECT: "meomobile.xcodeproj"
+        XCODE_SCHEME: "meomobile"
       node: 18.17.0
       xcode: 15.2
     triggering:
@@ -80,25 +80,28 @@ workflows:
       - name: Prebuild Expo (generate native code)
         script: |
           npx expo prebuild --platform ios --clean
-      - name: Set up code signing
+      - name: Set up provisioning profiles
         script: |
+          # Initialize keychain for code signing
           keychain initialize
-      - name: Fetch signing files
-        script: |
-          app-store-connect fetch-signing-files "$CM_BUNDLE_ID" \
+          
+          # Fetch or create provisioning profile using Apple ID
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_DEVELOPMENT \
-            --create
-      - name: Add certificates to keychain
-        script: |
+            --create \
+            --apple-id "$APPLE_ID" \
+            --password "$APP_SPECIFIC_PASSWORD"
+          
+          # Add certificates to keychain
           keychain add-certificates
-      - name: Update project settings for code signing
-        script: |
+          
+          # Configure Xcode project to use fetched profiles
           xcode-project use-profiles
       - name: Build iOS app
         script: |
           xcode-project build-ipa \
-            --workspace ios/meomobile.xcworkspace \
-            --scheme meomobile
+            --project "ios/$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
