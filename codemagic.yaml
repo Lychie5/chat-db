@@ -149,7 +149,7 @@ workflows:
           cd ios
           
           echo "=== Building app ==="
-          # Build in Debug mode (less optimized, better for unsigned apps)
+          # Build in Debug mode but force bundling like Release
           xcodebuild clean build \
             -workspace "$XCODE_PROJECT.xcworkspace" \
             -scheme "$XCODE_PROJECT" \
@@ -160,6 +160,8 @@ workflows:
             ONLY_ACTIVE_ARCH=NO \
             VALID_ARCHS="arm64" \
             ARCHS="arm64" \
+            SKIP_BUNDLING=NO \
+            FORCE_BUNDLING=YES \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
