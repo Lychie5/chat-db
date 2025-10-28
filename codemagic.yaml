@@ -113,12 +113,20 @@ workflows:
       - name: Install CocoaPods dependencies
         script: |
           cd ios
+          echo "=== Installing pods ==="
           pod install
+          echo "=== Checking workspace ==="
+          ls -la *.xcworkspace
           cd ..
           echo "✓ Pods installed"
       - name: Build unsigned IPA
         script: |
           cd ios
+          
+          echo "=== Current directory: $(pwd) ==="
+          echo "=== XCODE_PROJECT: $XCODE_PROJECT ==="
+          echo "=== Workspace files: ==="
+          ls -la *.xcworkspace
           
           # Build app without code signing using workspace (required after pod install)
           xcodebuild clean build \
